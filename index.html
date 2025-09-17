@@ -2,24 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Top-right Corner Cropper</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Top-right Corner Cropper (debug)</title>
   <style>
-    :root { --bg:#0f1115; --panel:#171a21; --muted:#a7b0c0; --text:#e9eef8; --accent:#6ea8fe; }
-    html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text)}
-    .wrap{max-width:860px;margin:0 auto;padding:24px}
-    h1{font-size:20px;margin:0 0 12px}
-    .card{background:var(--panel);border-radius:16px;box-shadow:0 6px 30px rgba(0,0,0,.35);padding:16px}
-    .grid{display:grid;grid-template-columns:1fr;gap:12px}
-    @media (min-width:860px){.grid{grid-template-columns:320px 1fr}}
-    label{font-size:12px;color:var(--muted);display:block;margin:0 0 4px}
-    input[type="number"],input[type="range"],input[type="file"]{
-      width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a2f3a;background:#0f1320;color:var(--text)
-    }
-    input[type="range"]{padding:0;height:28px}
-    button{appearance:none;background:var(--accent);color:#0c1222;border:none;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
-    button.secondary{background:#2a2f3a;color:var(--text)}
+    body{margin:0;font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;background:#0f1115;color:#e9eef8}
+    .wrap{max-width:900px;margin:0 auto;padding:20px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{font-size:12px;color:#a7b0c0}
+    input,button{padding:10px;border-radius:10px;border:1px solid #2a2f3a;background:#0f1320;color:#e9eef8}
+    button{cursor:pointer}
     .preview{
       display:flex;align-items:center;justify-content:center;
       background:
@@ -27,209 +18,46 @@
         linear-gradient(45deg,transparent 75%,#111 75%) 0 0/24px 24px,
         linear-gradient(45deg,#111 25%,transparent 25%) 12px 12px/24px 24px,
         linear-gradient(45deg,transparent 75%,#111 75%) 12px 12px/24px 24px;
-      border:1px solid #2a2f3a;border-radius:16px;min-height:320px
+      border:1px solid #2a2f3a;border-radius:16px;min-height:320px;margin-top:12px
     }
-    .hint{font-size:12px;color:var(--muted)}
     canvas{max-width:100%;height:auto;border-radius:12px;touch-action:none}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .hint{font-size:12px;color:#a7b0c0}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Top-right Corner Cropper</h1>
-    <div class="card grid">
+    <h1>Top-right Corner Cropper (debug)</h1>
+
+    <div>
+      <label>Image</label>
+      <input id="file" type="file" accept="image/*" />
+      <div class="hint">Drag to pan. Wheel to zoom. PNG export. Check DevTools Console for [cropper] logs.</div>
+    </div>
+
+    <div class="row" style="margin-top:8px">
       <div>
-        <div>
-          <label>Image</label>
-          <input id="file" type="file" accept="image/*" />
-          <div class="hint">Drag to pan. Mouse wheel / pinch to zoom. Output is fixed-size PNG with only the <strong>top-right</strong> corner rounded.</div>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <div>
-            <label>Top-right radius (px)</label>
-            <input id="rTR" type="number" inputmode="numeric" value="24" />
-          </div>
-          <div>
-            <label>Zoom</label>
-            <input id="zoom" type="range" min="1" max="3" step="0.01" value="1" />
-          </div>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button id="reset" class="secondary">Reset view</button>
-          <button id="download">Download PNG</button>
-        </div>
+        <label>Top-right radius (px)</label>
+        <input id="rTR" type="number" value="24" />
       </div>
-      <div class="preview">
-        <canvas id="out" width="1200" height="628" aria-label="preview"></canvas>
+      <div>
+        <label>Zoom</label>
+        <input id="zoom" type="range" min="1" max="3" step="0.01" value="1" />
       </div>
     </div>
-    <p class="hint">Fixed output size defaults to <code>1200×628</code> (change in code). Only top-right corner is rounded. Zoom is clamped to cover so there are no gaps.</p>
+
+    <div class="row" style="margin-top:8px">
+      <button id="reset">Reset view</button>
+      <button id="download">Download PNG</button>
+    </div>
+
+    <div class="preview">
+      <canvas id="out" width="1200" height="628" aria-label="preview"></canvas>
+    </div>
+
+    <p class="hint">Fixed size 1200×628 (edit in app.js). Only top-right corner is rounded.</p>
   </div>
 
-  <script>
-    // ===== Config =====
-    const DST_W = 1200; // change if you want a different fixed output
-    const DST_H = 628;
-
-    // ===== DOM =====
-    const el = id => document.getElementById(id);
-    const fileInput = el('file');
-    const zoomSlider = el('zoom');
-    const radiusInput = el('rTR');
-    const resetBtn = el('reset');
-    const downloadBtn = el('download');
-
-    const canvas = el('out');
-    const ctx = canvas.getContext('2d');
-    canvas.width = DST_W; canvas.height = DST_H;
-
-    // ===== State =====
-    let img = null;          // HTMLImageElement
-    let tx = 0, ty = 0;      // translation
-    let scale = 1;           // current zoom
-    let minScale = 1;        // cover zoom
-    let dragging = false, lastX = 0, lastY = 0;
-
-    // ===== Utils =====
-    const SUPPORTED = new Set(["image/jpeg","image/png","image/webp"]);
-    const log = (...a) => console.log("[cropper]", ...a);
-    const showError = msg => alert(msg);
-    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-
-    function clampRadius(r){
-      const maxR = Math.floor(Math.min(DST_W, DST_H)/2);
-      return clamp((r||0)|0, 0, maxR);
-    }
-
-    function computeCoverScale(sw, sh){
-      return Math.max(DST_W / sw, DST_H / sh);
-    }
-
-    function draw(){
-      ctx.clearRect(0,0,DST_W,DST_H);
-
-      if (!img) return;
-
-      // Clip: top-right rounded only
-      const rTR = clampRadius(parseInt(radiusInput.value, 10) || 0);
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(0,0);
-      ctx.lineTo(DST_W - rTR, 0);
-      if (rTR) ctx.quadraticCurveTo(DST_W, 0, DST_W, rTR); else ctx.lineTo(DST_W, 0);
-      ctx.lineTo(DST_W, DST_H);
-      ctx.lineTo(0, DST_H);
-      ctx.closePath();
-      ctx.clip();
-
-      // Draw image with current transform (centered, then pan/zoom)
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      const dw = img.naturalWidth * scale;
-      const dh = img.naturalHeight * scale;
-      const dx = Math.round((DST_W - dw)/2 + tx);
-      const dy = Math.round((DST_H - dh)/2 + ty);
-      ctx.drawImage(img, dx, dy, dw, dh);
-
-      ctx.restore();
-
-      // tiny debug readout
-      ctx.fillStyle = "rgba(255,255,255,.7)";
-      ctx.font = "12px system-ui, sans-serif";
-      ctx.fillText(`zoom ${scale.toFixed(2)}`, 8, DST_H - 10);
-    }
-
-    function resetView(){
-      if (!img) return;
-      minScale = computeCoverScale(img.naturalWidth, img.naturalHeight);
-      scale = minScale;
-      zoomSlider.min = String(minScale);
-      zoomSlider.max = String(Math.max(minScale*3, minScale+0.5));
-      zoomSlider.value = String(scale);
-      tx = 0; ty = 0;
-      draw();
-    }
-
-    // ===== Robust file loader =====
-    async function loadFile(f){
-      log("picked", f?.name, f?.type, f ? Math.round(f.size/1024)+"KB" : "");
-      if (!f) return;
-      if (!SUPPORTED.has(f.type || "")) {
-        showError(`Supports JPG, PNG, or WebP. You selected: ${f.type || "unknown"}.`);
-        return;
-      }
-
-      // Prefer ImageBitmap (handles EXIF; more tolerant of odd JPEGs)
-      if ("createImageBitmap" in window) {
-        try {
-          const bmp = await createImageBitmap(f, { imageOrientation: "from-image" });
-          const off = document.createElement("canvas");
-          off.width = bmp.width; off.height = bmp.height;
-          off.getContext("2d").drawImage(bmp, 0, 0);
-          const dataUrl = off.toDataURL("image/png"); // normalized sRGB PNG
-          const image = new Image();
-          image.onload  = () => { img = image; log("loaded via ImageBitmap", bmp.width+"x"+bmp.height); resetView(); };
-          image.onerror = () => showError("Decode failed (ImageBitmap path). Try another file.");
-          image.src = dataUrl;
-          return;
-        } catch(e) {
-          log("ImageBitmap failed; falling back", e);
-        }
-      }
-
-      // Fallback: ObjectURL → Image
-      const url = URL.createObjectURL(f);
-      const image = new Image();
-      image.onload  = () => { URL.revokeObjectURL(url); img = image; log("loaded via Image", image.naturalWidth+"x"+image.naturalHeight); resetView(); };
-      image.onerror = () => { URL.revokeObjectURL(url); showError("Couldn’t load that image. Save as JPG/PNG/WebP and retry."); };
-      image.src = url;
-    }
-
-    // ===== Interactions =====
-    fileInput.addEventListener('change', (e)=>{
-      const f = e.target.files && e.target.files[0];
-      loadFile(f);
-    });
-
-    // drag to pan
-    canvas.addEventListener('pointerdown', (e)=>{ dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
-    canvas.addEventListener('pointermove', (e)=>{ if (!dragging) return; tx += (e.clientX - lastX); ty += (e.clientY - lastY); lastX = e.clientX; lastY = e.clientY; draw(); });
-    canvas.addEventListener('pointerup',   (e)=>{ dragging = false; canvas.releasePointerCapture(e.pointerId); });
-    canvas.addEventListener('pointercancel', ()=>{ dragging = false; });
-
-    // wheel / pinch zoom (around canvas center)
-    canvas.addEventListener('wheel', (e)=>{
-      if (!img) return; e.preventDefault();
-      const delta = -e.deltaY; // up = zoom in
-      const factor = Math.exp(delta * 0.0015);
-      const newScale = clamp(scale * factor, minScale, parseFloat(zoomSlider.max));
-      // zoom relative to canvas center so composition stays stable
-      const cx = DST_W/2, cy = DST_H/2;
-      tx = cx + (tx - cx) * (newScale/scale);
-      ty = cy + (ty - cy) * (newScale/scale);
-      scale = newScale;
-      zoomSlider.value = String(scale);
-      draw();
-    }, { passive:false });
-
-    zoomSlider.addEventListener('input', ()=>{
-      if (!img) return;
-      scale = clamp(parseFloat(zoomSlider.value)||minScale, minScale, parseFloat(zoomSlider.max));
-      draw();
-    });
-
-    radiusInput.addEventListener('input', draw);
-    resetBtn.addEventListener('click', resetView);
-
-    downloadBtn.addEventListener('click', ()=>{
-      const url = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = url; a.download = 'top-right-rounded.png';
-      document.body.appendChild(a); a.click(); a.remove();
-    });
-
-    // initial
-    draw();
-  </script>
+  <script src="loader.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
