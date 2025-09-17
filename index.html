@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Top-right Corner Cropper (fixed size + drag/zoom)</title>
+  <title>Top-right Corner Cropper</title>
   <style>
     :root { --bg:#0f1115; --panel:#171a21; --muted:#a7b0c0; --text:#e9eef8; --accent:#6ea8fe; }
     html,body{height:100%}
@@ -14,11 +14,21 @@
     .grid{display:grid;grid-template-columns:1fr;gap:12px}
     @media (min-width:860px){.grid{grid-template-columns:320px 1fr}}
     label{font-size:12px;color:var(--muted);display:block;margin:0 0 4px}
-    input[type="number"],input[type="range"],select,input[type="file"]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a2f3a;background:#0f1320;color:var(--text)}
+    input[type="number"],input[type="range"],input[type="file"]{
+      width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a2f3a;background:#0f1320;color:var(--text)
+    }
     input[type="range"]{padding:0;height:28px}
     button{appearance:none;background:var(--accent);color:#0c1222;border:none;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
     button.secondary{background:#2a2f3a;color:var(--text)}
-    .preview{display:flex;align-items:center;justify-content:center;background:#0c0f15;border:1px solid #2a2f3a;border-radius:16px;min-height:320px}
+    .preview{
+      display:flex;align-items:center;justify-content:center;
+      background:
+        linear-gradient(45deg,#111 25%,transparent 25%) 0 0/24px 24px,
+        linear-gradient(45deg,transparent 75%,#111 75%) 0 0/24px 24px,
+        linear-gradient(45deg,#111 25%,transparent 25%) 12px 12px/24px 24px,
+        linear-gradient(45deg,transparent 75%,#111 75%) 12px 12px/24px 24px;
+      border:1px solid #2a2f3a;border-radius:16px;min-height:320px
+    }
     .hint{font-size:12px;color:var(--muted)}
     canvas{max-width:100%;height:auto;border-radius:12px;touch-action:none}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -53,127 +63,173 @@
         <canvas id="out" width="1200" height="628" aria-label="preview"></canvas>
       </div>
     </div>
-    <p class="hint">Fixed output size defaults to <code>1200×628</code> (changeable in code). Only top-right corner is rounded. Zoom clamped to ≥ cover scale.</p>
+    <p class="hint">Fixed output size defaults to <code>1200×628</code> (change in code). Only top-right corner is rounded. Zoom is clamped to cover so there are no gaps.</p>
   </div>
 
   <script>
-  const el = id => document.getElementById(id);
-  const fileInput = el('file');
-  const canvas = el('out');
-  const ctx = canvas.getContext('2d');
-  const zoomSlider = el('zoom');
-  const radiusInput = el('rTR');
-  const resetBtn = el('reset');
+    // ===== Config =====
+    const DST_W = 1200; // change if you want a different fixed output
+    const DST_H = 628;
 
-  // === CONFIG ===
-  const DST_W = 1200;   // change to your exact card width
-  const DST_H = 628;    // change to your exact card height
-  canvas.width = DST_W; canvas.height = DST_H;
+    // ===== DOM =====
+    const el = id => document.getElementById(id);
+    const fileInput = el('file');
+    const zoomSlider = el('zoom');
+    const radiusInput = el('rTR');
+    const resetBtn = el('reset');
+    const downloadBtn = el('download');
 
-  // State
-  let img = null;               // HTMLImageElement
-  let tx = 0, ty = 0;           // translation (px)
-  let scale = 1;                // current scale
-  let minScale = 1;             // cover scale
-  let dragging = false;         // pointer state
-  let lastX = 0, lastY = 0;
+    const canvas = el('out');
+    const ctx = canvas.getContext('2d');
+    canvas.width = DST_W; canvas.height = DST_H;
 
-  function clampRadius(r){
-    const maxR = Math.floor(Math.min(DST_W, DST_H) / 2);
-    return Math.max(0, Math.min(maxR, r||0));
-  }
+    // ===== State =====
+    let img = null;          // HTMLImageElement
+    let tx = 0, ty = 0;      // translation
+    let scale = 1;           // current zoom
+    let minScale = 1;        // cover zoom
+    let dragging = false, lastX = 0, lastY = 0;
 
-  function computeCoverScale(srcW, srcH){
-    const s = Math.max(DST_W / srcW, DST_H / srcH); // cover
-    return s;
-  }
+    // ===== Utils =====
+    const SUPPORTED = new Set(["image/jpeg","image/png","image/webp"]);
+    const log = (...a) => console.log("[cropper]", ...a);
+    const showError = msg => alert(msg);
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-  function draw(){
-    if (!img) { ctx.clearRect(0,0,DST_W,DST_H); return; }
-    ctx.clearRect(0,0,DST_W,DST_H);
-
-    // Rounded top-right clip
-    const rTR = clampRadius(parseInt(radiusInput.value, 10) || 0);
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(0,0);
-    ctx.lineTo(DST_W - rTR, 0);
-    if (rTR) ctx.quadraticCurveTo(DST_W, 0, DST_W, rTR); else ctx.lineTo(DST_W, 0);
-    ctx.lineTo(DST_W, DST_H);
-    ctx.lineTo(0, DST_H);
-    ctx.closePath();
-    ctx.clip();
-
-    // Draw image with current transform
-    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-    const dw = img.naturalWidth * scale;
-    const dh = img.naturalHeight * scale;
-    const dx = Math.round((DST_W - dw)/2 + tx);
-    const dy = Math.round((DST_H - dh)/2 + ty);
-    ctx.drawImage(img, dx, dy, dw, dh);
-
-    ctx.restore();
-  }
-
-  function resetView(){
-    if (!img) return;
-    minScale = computeCoverScale(img.naturalWidth, img.naturalHeight);
-    scale = minScale; // start at cover
-    zoomSlider.min = String(minScale);
-    zoomSlider.max = String(Math.max(minScale*3, minScale+0.5));
-    zoomSlider.value = String(scale);
-    tx = 0; ty = 0;
-    draw();
-  }
-
-  // Pointer drag to pan
-  canvas.addEventListener('pointerdown', (e)=>{ dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
-  canvas.addEventListener('pointermove', (e)=>{ if (!dragging) return; tx += (e.clientX - lastX); ty += (e.clientY - lastY); lastX = e.clientX; lastY = e.clientY; draw(); });
-  canvas.addEventListener('pointerup', (e)=>{ dragging = false; canvas.releasePointerCapture(e.pointerId); });
-  canvas.addEventListener('pointercancel', ()=>{ dragging = false; });
-
-  // Wheel to zoom around center
-  canvas.addEventListener('wheel', (e)=>{
-    if (!img) return; e.preventDefault();
-    const delta = -e.deltaY; // up = zoom in
-    const factor = Math.exp(delta * 0.0015);
-    const newScale = Math.max(minScale, Math.min(parseFloat(zoomSlider.max), scale * factor));
-    // keep center steady relative to canvas center
-    const cx = DST_W/2, cy = DST_H/2;
-    tx = cx + (tx - cx) * (newScale/scale);
-    ty = cy + (ty - cy) * (newScale/scale);
-    scale = newScale;
-    zoomSlider.value = String(scale);
-    draw();
-  }, { passive:false });
-
-  zoomSlider.addEventListener('input', ()=>{ if (!img) return; scale = Math.max(minScale, parseFloat(zoomSlider.value)||minScale); draw(); });
-  resetBtn.addEventListener('click', ()=> resetView());
-
-  // File load (robust: type guard + ObjectURL to avoid huge data URIs)
-  const SUPPORTED = new Set(["image/jpeg","image/png","image/webp"]);
-  function showError(msg){ alert(msg); }
-
-  fileInput.addEventListener('change', async (e)=>{
-    const f = e.target.files && e.target.files[0]; if (!f) return;
-    if (!SUPPORTED.has(f.type)){
-      showError(`This tool supports JPG, PNG, or WebP. You selected: ${f.type || 'unknown'}.`);
-      return;
+    function clampRadius(r){
+      const maxR = Math.floor(Math.min(DST_W, DST_H)/2);
+      return clamp((r||0)|0, 0, maxR);
     }
-    // Prefer object URL for reliability (esp. Safari with large files)
-    const url = URL.createObjectURL(f);
-    const image = new Image();
-    image.onload = () => { URL.revokeObjectURL(url); img = image; resetView(); };
-    image.onerror = () => { URL.revokeObjectURL(url); showError('Could not load that image. Try saving as JPG/PNG/WebP and retry.'); };
-    image.src = url;
-  });
 
-  // Download
-  document.getElementById('download').addEventListener('click', ()=>{
-    const url = canvas.toDataURL('image/png');
-    const a = document.createElement('a'); a.href = url; a.download = 'top-right-rounded.png';
-    document.body.appendChild(a); a.click(); a.remove();
-  });
+    function computeCoverScale(sw, sh){
+      return Math.max(DST_W / sw, DST_H / sh);
+    }
 
-  // Initial draw
-  draw();
+    function draw(){
+      ctx.clearRect(0,0,DST_W,DST_H);
+
+      if (!img) return;
+
+      // Clip: top-right rounded only
+      const rTR = clampRadius(parseInt(radiusInput.value, 10) || 0);
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.lineTo(DST_W - rTR, 0);
+      if (rTR) ctx.quadraticCurveTo(DST_W, 0, DST_W, rTR); else ctx.lineTo(DST_W, 0);
+      ctx.lineTo(DST_W, DST_H);
+      ctx.lineTo(0, DST_H);
+      ctx.closePath();
+      ctx.clip();
+
+      // Draw image with current transform (centered, then pan/zoom)
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      const dw = img.naturalWidth * scale;
+      const dh = img.naturalHeight * scale;
+      const dx = Math.round((DST_W - dw)/2 + tx);
+      const dy = Math.round((DST_H - dh)/2 + ty);
+      ctx.drawImage(img, dx, dy, dw, dh);
+
+      ctx.restore();
+
+      // tiny debug readout
+      ctx.fillStyle = "rgba(255,255,255,.7)";
+      ctx.font = "12px system-ui, sans-serif";
+      ctx.fillText(`zoom ${scale.toFixed(2)}`, 8, DST_H - 10);
+    }
+
+    function resetView(){
+      if (!img) return;
+      minScale = computeCoverScale(img.naturalWidth, img.naturalHeight);
+      scale = minScale;
+      zoomSlider.min = String(minScale);
+      zoomSlider.max = String(Math.max(minScale*3, minScale+0.5));
+      zoomSlider.value = String(scale);
+      tx = 0; ty = 0;
+      draw();
+    }
+
+    // ===== Robust file loader =====
+    async function loadFile(f){
+      log("picked", f?.name, f?.type, f ? Math.round(f.size/1024)+"KB" : "");
+      if (!f) return;
+      if (!SUPPORTED.has(f.type || "")) {
+        showError(`Supports JPG, PNG, or WebP. You selected: ${f.type || "unknown"}.`);
+        return;
+      }
+
+      // Prefer ImageBitmap (handles EXIF; more tolerant of odd JPEGs)
+      if ("createImageBitmap" in window) {
+        try {
+          const bmp = await createImageBitmap(f, { imageOrientation: "from-image" });
+          const off = document.createElement("canvas");
+          off.width = bmp.width; off.height = bmp.height;
+          off.getContext("2d").drawImage(bmp, 0, 0);
+          const dataUrl = off.toDataURL("image/png"); // normalized sRGB PNG
+          const image = new Image();
+          image.onload  = () => { img = image; log("loaded via ImageBitmap", bmp.width+"x"+bmp.height); resetView(); };
+          image.onerror = () => showError("Decode failed (ImageBitmap path). Try another file.");
+          image.src = dataUrl;
+          return;
+        } catch(e) {
+          log("ImageBitmap failed; falling back", e);
+        }
+      }
+
+      // Fallback: ObjectURL → Image
+      const url = URL.createObjectURL(f);
+      const image = new Image();
+      image.onload  = () => { URL.revokeObjectURL(url); img = image; log("loaded via Image", image.naturalWidth+"x"+image.naturalHeight); resetView(); };
+      image.onerror = () => { URL.revokeObjectURL(url); showError("Couldn’t load that image. Save as JPG/PNG/WebP and retry."); };
+      image.src = url;
+    }
+
+    // ===== Interactions =====
+    fileInput.addEventListener('change', (e)=>{
+      const f = e.target.files && e.target.files[0];
+      loadFile(f);
+    });
+
+    // drag to pan
+    canvas.addEventListener('pointerdown', (e)=>{ dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener('pointermove', (e)=>{ if (!dragging) return; tx += (e.clientX - lastX); ty += (e.clientY - lastY); lastX = e.clientX; lastY = e.clientY; draw(); });
+    canvas.addEventListener('pointerup',   (e)=>{ dragging = false; canvas.releasePointerCapture(e.pointerId); });
+    canvas.addEventListener('pointercancel', ()=>{ dragging = false; });
+
+    // wheel / pinch zoom (around canvas center)
+    canvas.addEventListener('wheel', (e)=>{
+      if (!img) return; e.preventDefault();
+      const delta = -e.deltaY; // up = zoom in
+      const factor = Math.exp(delta * 0.0015);
+      const newScale = clamp(scale * factor, minScale, parseFloat(zoomSlider.max));
+      // zoom relative to canvas center so composition stays stable
+      const cx = DST_W/2, cy = DST_H/2;
+      tx = cx + (tx - cx) * (newScale/scale);
+      ty = cy + (ty - cy) * (newScale/scale);
+      scale = newScale;
+      zoomSlider.value = String(scale);
+      draw();
+    }, { passive:false });
+
+    zoomSlider.addEventListener('input', ()=>{
+      if (!img) return;
+      scale = clamp(parseFloat(zoomSlider.value)||minScale, minScale, parseFloat(zoomSlider.max));
+      draw();
+    });
+
+    radiusInput.addEventListener('input', draw);
+    resetBtn.addEventListener('click', resetView);
+
+    downloadBtn.addEventListener('click', ()=>{
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url; a.download = 'top-right-rounded.png';
+      document.body.appendChild(a); a.click(); a.remove();
+    });
+
+    // initial
+    draw();
+  </script>
+</body>
+</html>
