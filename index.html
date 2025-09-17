@@ -150,12 +150,22 @@
   zoomSlider.addEventListener('input', ()=>{ if (!img) return; scale = Math.max(minScale, parseFloat(zoomSlider.value)||minScale); draw(); });
   resetBtn.addEventListener('click', ()=> resetView());
 
-  // File load
+  // File load (robust: type guard + ObjectURL to avoid huge data URIs)
+  const SUPPORTED = new Set(["image/jpeg","image/png","image/webp"]);
+  function showError(msg){ alert(msg); }
+
   fileInput.addEventListener('change', async (e)=>{
     const f = e.target.files && e.target.files[0]; if (!f) return;
-    const fr = new FileReader();
-    fr.onload = () => { img = new Image(); img.onload = () => { resetView(); }; img.src = fr.result; };
-    fr.readAsDataURL(f);
+    if (!SUPPORTED.has(f.type)){
+      showError(`This tool supports JPG, PNG, or WebP. You selected: ${f.type || 'unknown'}.`);
+      return;
+    }
+    // Prefer object URL for reliability (esp. Safari with large files)
+    const url = URL.createObjectURL(f);
+    const image = new Image();
+    image.onload = () => { URL.revokeObjectURL(url); img = image; resetView(); };
+    image.onerror = () => { URL.revokeObjectURL(url); showError('Could not load that image. Try saving as JPG/PNG/WebP and retry.'); };
+    image.src = url;
   });
 
   // Download
