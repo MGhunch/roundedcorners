@@ -12,24 +12,25 @@
   <div class="wrap">
     <div class="card">
       <div class="card-copy">
-        <h1>Need an image for your content card?</h1>
+        <!-- Two-line headline (Regular weight handled in CSS) -->
+        <h1>Need an image for<br>your content card?</h1>
         <p>Just upload any image, use the zoom and move it around to find the perfect crop. Then hit download. Easy.</p>
       </div>
 
-      <!-- Hidden native file input (used by app.js) -->
+      <!-- Hidden native file input (app.js listens on #file) -->
       <input id="file" type="file" accept="image/*" class="visually-hidden" />
 
       <div class="preview">
         <!-- Fixed 470×200 canvas; app.js draws to this -->
         <canvas id="out" width="470" height="200" aria-label="preview"></canvas>
 
-        <!-- Upload hint (not baked into export; hidden after an image loads) -->
-        <div id="emptyHint" class="empty-hint" aria-hidden="true">
+        <!-- Upload overlay AS A BUTTON; app.js hides #emptyHint after load -->
+        <button id="emptyHint" type="button" class="empty-hint" aria-label="Upload an image">
           <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
             <path d="M12 3l4.5 4.5-1.4 1.4L13 6.8V16h-2V6.8L8.9 8.9 7.5 7.5 12 3zM5 18h14v2H5z" fill="#38A45F"/>
           </svg>
           <span>Upload your image</span>
-        </div>
+        </button>
       </div>
     </div>
 
@@ -44,29 +45,29 @@
         </div>
       </div>
 
+      <!-- Single bottom action -->
       <div class="buttons">
-        <button id="chooseFileBtn" class="btn btn-outline">
-          <span class="icon" aria-hidden="true">⤴︎</span> Upload an image
-        </button>
         <button id="download" class="btn btn-outline">
           <span class="icon" aria-hidden="true">⬇︎</span> Download your file
         </button>
       </div>
     </div>
 
-    <!-- Keep this for app.js logic -->
+    <!-- Keep for app.js logic -->
     <button id="reset" class="visually-hidden">Reset view</button>
   </div>
 
+  <!-- App logic -->
   <script type="module" src="./app.js"></script>
 
+  <!-- Small helpers: bridge upload overlay, update Zoom (NN%) and filled track -->
   <script>
-    // Pretty "Upload" button → hidden #file input
-    const chooseBtn = document.getElementById('chooseFileBtn');
+    // Make the overlay open the hidden file input
     const fileInput = document.getElementById('file');
-    chooseBtn.addEventListener('click', () => fileInput.click());
+    const emptyHintBtn = document.getElementById('emptyHint');
+    if (emptyHintBtn) emptyHintBtn.addEventListener('click', () => fileInput.click());
 
-    // Live Zoom % readout + filled track
+    // Live Zoom label + filled track
     const zoom = document.getElementById('zoom');
     const zoomPct = document.getElementById('zoomPct');
 
@@ -75,22 +76,22 @@
       const max = parseFloat(zoom.max || '3');
       const val = parseFloat(zoom.value || min);
 
-      // Display "Zoom (NN%)" relative to min cover scale
+      // "Zoom (NN%)" — relative to cover scale (min)
       const pct = Math.max(0, Math.round((val / min) * 100));
       zoomPct.textContent = pct + '%';
 
-      // Fill % along the slider between min..max
+      // Filled track up to the thumb
       const fill = max > min ? ((val - min) / (max - min)) * 100 : 0;
       zoom.style.setProperty('--fill', `${fill}%`);
     }
 
     zoom.addEventListener('input', updateZoomUI);
 
-    // Also update when app.js changes min/max/value programmatically
+    // Also react when app.js updates min/max/value programmatically
     const obs = new MutationObserver(updateZoomUI);
     obs.observe(zoom, { attributes: true, attributeFilter: ['min', 'max', 'value'] });
 
-    // Initial
+    // Initial paint
     updateZoomUI();
   </script>
 
