@@ -1,0 +1,125 @@
+/* ===== Brand ===== */
+:root{
+  --brand:#38A45F;
+  --bg:#F2F4F6;
+  --ink:#1F2A2E;
+  --muted:#6B7A85;
+  --card:#FFFFFF;
+  --ring: rgba(56,164,95,.35);
+  --shadow: 0 12px 30px rgba(0,0,0,.12);
+}
+
+/* ===== Euclid font (webfonts in /fonts) ===== */
+@font-face{
+  font-family:"Euclid";
+  src: url("./fonts/euclidcirculara-regular-webfont.woff2") format("woff2");
+  font-weight:400; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:"Euclid";
+  src: url("./fonts/euclidcirculara-semibold-webfont.woff2") format("woff2");
+  font-weight:600; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:"Euclid";
+  src: url("./fonts/euclidcirculara-light-webfont.woff2") format("woff2");
+  font-weight:300; font-style:normal; font-display:swap;
+}
+
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font:16px/1.5 "Euclid", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ===== Layout ===== */
+.wrap{max-width:880px;margin:48px auto 80px;padding:0 24px}
+
+.card{
+  background:var(--card);
+  border-radius:18px;
+  box-shadow: var(--shadow);
+  padding:28px 28px 20px;
+}
+
+.card-copy h1{
+  margin:0 0 6px;
+  font-size:34px; line-height:1.2; font-weight:600; /* semibold */
+  color:var(--brand);
+}
+.card-copy p{
+  margin:0 0 18px; color:#51616B;
+  font-size:18px;
+}
+
+.preview{
+  display:flex; align-items:center; justify-content:center;
+  border-radius:18px;
+  overflow:hidden;
+  background:
+    linear-gradient(45deg,#0000000f 25%,transparent 25%) 0 0/24px 24px,
+    linear-gradient(45deg,transparent 75%,#0000000f 75%) 0 0/24px 24px,
+    linear-gradient(45deg,#0000000f 25%,transparent 25%) 12px 12px/24px 24px,
+    linear-gradient(45deg,transparent 75%,#0000000f 75%) 12px 12px/24px 24px;
+  border:1px solid #E2E7EB;
+}
+canvas{
+  max-width:100%; height:auto; display:block;
+  border-radius:18px; /* visual only; real rounding happens in JS */
+  touch-action:none;  /* keeps pointer events smooth */
+}
+
+/* ===== Controls ===== */
+.controls{margin-top:28px}
+
+.slider-wrap{ position:relative; padding:16px 0 28px; }
+
+input[type="range"]{
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:20px; background:transparent; outline:none;
+}
+input[type="range"]::-webkit-slider-runnable-track,
+input[type="range"]::-moz-range-track{
+  height:6px; border-radius:999px;
+  border:2px solid var(--brand);
+  background:transparent;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:28px; height:28px; margin-top:-12px;
+  border-radius:50%;
+  background:var(--brand);
+  box-shadow:0 2px 6px var(--ring);
+  border:0;
+}
+input[type="range"]::-moz-range-thumb{
+  width:28px; height:28px; border-radius:50%;
+  background:var(--brand); border:0; box-shadow:0 2px 6px var(--ring);
+}
+
+.buttons{
+  display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin-top:8px;
+}
+.btn{
+  font:500 18px/1 "Euclid", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  padding:18px 22px; border-radius:999px; cursor:pointer; user-select:none;
+  display:inline-flex; align-items:center; gap:10px;
+  transition: transform .06s ease, box-shadow .2s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+.btn-outline{
+  background:#fff; color:var(--brand);
+  border:2px solid var(--brand);
+  box-shadow:0 1px 0 rgba(0,0,0,.02);
+}
+.btn-outline:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.08); }
+.btn-outline:active{ transform:translateY(0); box-shadow:none; }
+.btn:focus-visible{ outline:3px solid var(--ring); outline-offset:3px; }
+
+.icon{font-size:20px; line-height:1}
+
+/* ===== A11y helpers ===== */
+.visually-hidden{
+  position:absolute !important; left:-9999px !important; width:1px !important; height:1px !important; overflow:hidden !important;
+}
