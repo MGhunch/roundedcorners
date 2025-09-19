@@ -1,94 +1,133 @@
 /* ===== Brand ===== */
 :root{
-  --brand:#38A45F;
-  --bg:#F2F4F6;
-  --ink:#1F2A2E;
-  --muted:#6B7A85;
-  --card:#FFFFFF;
+  --brand:#38A45F;         /* primary green */
+  --bg:#F3F5F7;            /* page grey */
+  --ink:#1F2A2E;           /* primary text */
+  --muted:#6B7A85;         /* secondary text */
+  --card:#FFFFFF;          /* surface */
   --ring: rgba(56,164,95,.35);
-  --shadow: 0 12px 30px rgba(0,0,0,.12);
+  --shadow: 0 16px 40px rgba(31,42,46,.12);
+  --border:#E2E7EB;
 }
 
 /* ===== Euclid font (webfonts in /fonts) ===== */
 @font-face{
   font-family:"Euclid";
-  src: url("./fonts/euclidcirculara-regular-webfont.woff2") format("woff2");
+  src:url("./fonts/euclidcirculara-regular-webfont.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap;
 }
 @font-face{
   font-family:"Euclid";
-  src: url("./fonts/euclidcirculara-semibold-webfont.woff2") format("woff2");
+  src:url("./fonts/euclidcirculara-semibold-webfont.woff2") format("woff2");
   font-weight:600; font-style:normal; font-display:swap;
 }
 @font-face{
   font-family:"Euclid";
-  src: url("./fonts/euclidcirculara-light-webfont.woff2") format("woff2");
+  src:url("./fonts/euclidcirculara-light-webfont.woff2") format("woff2");
   font-weight:300; font-style:normal; font-display:swap;
 }
 
+/* ===== Base ===== */
 html,body{height:100%}
 body{
   margin:0;
   background:var(--bg);
   color:var(--ink);
-  font:16px/1.5 "Euclid", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font:16px/1.6 "Euclid", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* ===== Layout ===== */
-.wrap{max-width:880px;margin:48px auto 80px;padding:0 24px}
+.wrap{max-width:720px;margin:36px auto 80px;padding:0 20px}
 
 .card{
   background:var(--card);
+  border:1px solid var(--border);
   border-radius:18px;
-  box-shadow: var(--shadow);
-  padding:28px 28px 20px;
+  box-shadow:var(--shadow);
+  padding:24px;
+  display:grid;
+  gap:16px;
 }
 
 .card-copy h1{
   margin:0 0 6px;
-  font-size:34px; line-height:1.2; font-weight:600; /* semibold */
+  font-size:34px; line-height:1.2; font-weight:600;
   color:var(--brand);
 }
 .card-copy p{
-  margin:0 0 18px; color:#51616B;
-  font-size:18px;
+  margin:0; color:#51616B; font-size:18px;
 }
 
+/* ===== Preview (looks like the final content block) ===== */
 .preview{
+  position:relative;
   display:flex; align-items:center; justify-content:center;
   border-radius:18px;
-  overflow:hidden;
   background:
     linear-gradient(45deg,#0000000f 25%,transparent 25%) 0 0/24px 24px,
     linear-gradient(45deg,transparent 75%,#0000000f 75%) 0 0/24px 24px,
     linear-gradient(45deg,#0000000f 25%,transparent 25%) 12px 12px/24px 24px,
     linear-gradient(45deg,transparent 75%,#0000000f 75%) 12px 12px/24px 24px;
-  border:1px solid #E2E7EB;
+  border:1px solid var(--border);
+  padding:18px;
 }
+
 canvas{
-  max-width:100%; height:auto; display:block;
-  border-radius:18px; /* visual only; real rounding happens in JS */
-  touch-action:none;  /* keeps pointer events smooth */
+  display:block;
+  width:470px; height:200px;
+  border-radius:18px; /* visual only; real clipping in JS */
+  touch-action:none;
+}
+
+/* Empty state overlay */
+.empty-hint{
+  position:absolute; inset:18px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:8px; color:#51616B; font:600 14px/1 "Euclid", system-ui, sans-serif;
+  pointer-events:none; user-select:none;
 }
 
 /* ===== Controls ===== */
-.controls{margin-top:28px}
+.controls{margin-top:18px}
 
-.slider-wrap{ position:relative; padding:16px 0 28px; }
+.slider-wrap{margin:0}
+.slider-card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:14px; padding:14px 16px;
+  box-shadow:0 6px 16px rgba(0,0,0,.06);
+}
 
+.slider-title{
+  float:right;
+  font:600 13px/1 "Euclid", system-ui, sans-serif;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+
+/* Range input with brand-colored filled track */
 input[type="range"]{
   -webkit-appearance:none; appearance:none;
   width:100%; height:20px; background:transparent; outline:none;
 }
-input[type="range"]::-webkit-slider-runnable-track,
-input[type="range"]::-moz-range-track{
-  height:6px; border-radius:999px;
+input[type="range"]::-webkit-slider-runnable-track{
+  height:8px; border-radius:999px;
+  background:
+    linear-gradient(var(--brand), var(--brand)) 0/ var(--fill, 0%) 100% no-repeat,
+    #fff;
   border:2px solid var(--brand);
-  background:transparent;
+}
+input[type="range"]::-moz-range-track{
+  height:8px; border-radius:999px;
+  background:#fff;
+  border:2px solid var(--brand);
+}
+input[type="range"]::-moz-range-progress{
+  height:8px; border-radius:999px;
+  background:var(--brand);
 }
 input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance:none; appearance:none;
-  width:28px; height:28px; margin-top:-12px;
+  width:28px; height:28px; margin-top:-13px;
   border-radius:50%;
   background:var(--brand);
   box-shadow:0 2px 6px var(--ring);
@@ -99,8 +138,9 @@ input[type="range"]::-moz-range-thumb{
   background:var(--brand); border:0; box-shadow:0 2px 6px var(--ring);
 }
 
+/* Buttons row */
 .buttons{
-  display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin-top:8px;
+  display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin-top:16px;
 }
 .btn{
   font:500 18px/1 "Euclid", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -119,7 +159,7 @@ input[type="range"]::-moz-range-thumb{
 
 .icon{font-size:20px; line-height:1}
 
-/* ===== A11y helpers ===== */
+/* ===== A11y helper ===== */
 .visually-hidden{
   position:absolute !important; left:-9999px !important; width:1px !important; height:1px !important; overflow:hidden !important;
 }
