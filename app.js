@@ -19,37 +19,34 @@ let img = null, tx = 0, ty = 0, scale = 1, minScale = 1, dragging = false, lastX
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const coverScale = (sw, sh) => Math.max(DST_W / sw, DST_H / sh);
 
+// Helper to notify index.html that zoom changed (updates "Zoom (..%)")
+function emitZoomInput() {
+  zoomSlider.dispatchEvent(new Event("input")); // triggers zoomPct update in index.html
+}
+
 function roundedClipPath(ctx) {
   ctx.beginPath();
 
-  // Start at top-left
-  if (R_TL) {
-    ctx.moveTo(0, R_TL);
-    ctx.quadraticCurveTo(0, 0, R_TL, 0);
-  } else {
-    ctx.moveTo(0, 0);
-  }
+  // Start at top-left (square)
+  ctx.moveTo(0, 0);
 
   // Top edge → before TR
   ctx.lineTo(DST_W - R_TR, 0);
   // TR corner
-  if (R_TR) ctx.quadraticCurveTo(DST_W, 0, DST_W, R_TR);
-  else ctx.lineTo(DST_W, 0);
+  if (R_TR) ctx.quadraticCurveTo(DST_W, 0, DST_W, R_TR); else ctx.lineTo(DST_W, 0);
 
   // Right edge → before BR
   ctx.lineTo(DST_W, DST_H - R_BR);
   // BR corner
-  if (R_BR) ctx.quadraticCurveTo(DST_W, DST_H, DST_W - R_BR, DST_H);
-  else ctx.lineTo(DST_W, DST_H);
+  if (R_BR) ctx.quadraticCurveTo(DST_W, DST_H, DST_W - R_BR, DST_H); else ctx.lineTo(DST_W, DST_H);
 
   // Bottom edge → before BL
   ctx.lineTo(R_BL, DST_H);
   // BL corner
-  if (R_BL) ctx.quadraticCurveTo(0, DST_H, 0, DST_H - R_BL);
-  else ctx.lineTo(0, DST_H);
+  if (R_BL) ctx.quadraticCurveTo(0, DST_H, 0, DST_H - R_BL); else ctx.lineTo(0, DST_H);
 
-  // Left edge back up
-  ctx.lineTo(0, R_TL || 0);
+  // Left edge back up (TL is 0 so straight line)
+  ctx.lineTo(0, 0);
   ctx.closePath();
 }
 
@@ -75,23 +72,37 @@ function draw() {
 
 function resetView() {
   if (!img) return;
+
+  // Cover scale to fill 470×200
   minScale = coverScale(img.naturalWidth, img.naturalHeight);
   scale = minScale;
-  zoomSlider.min = String(minScale);
-  zoomSlider.max = String(Math.max(minScale * 3, minScale + 0.5));
+
+  // Allow 50% .. 200% relative to the cover scale
+  zoomSlider.min = String(minScale * 0.5);
+  zoomSlider.max = String(minScale * 2.0);
   zoomSlider.value = String(scale);
+
   tx = 0; ty = 0;
+
+  // Hide the “Upload your image” hint now that we have an image
+  const hint = document.getElementById("emptyHint");
+  if (hint) hint.style.display = "none";
+
+  emitZoomInput();
   draw();
 }
 
 // --- events ---
 fileInput.addEventListener("change", async (e) => {
   try {
-    img = await loadImageFromFile(e.target.files?.[0]);
+    img = await loadImageFromFile(e.target.files?.[0]); // JPG/PNG/WebP support
     resetView();
   } catch (err) {
     error(err);
     alert(err.message || "Failed to load image.");
+    // If load failed, show the hint again
+    const hint = document.getElementById("emptyHint");
+    if (hint) hint.style.display = "";
   }
 });
 
@@ -105,24 +116,28 @@ canvas.addEventListener("pointermove", (e) => {
   lastX = e.clientX; lastY = e.clientY;
   draw();
 });
-canvas.addEventListener("pointerup", (e) => { dragging = false; canvas.releasePointerCapture(e.pointerId); });
+canvas.addEventListener("pointerup",   (e) => { dragging = false; canvas.releasePointerCapture(e.pointerId); });
 canvas.addEventListener("pointercancel", () => { dragging = false; });
 
 canvas.addEventListener("wheel", (e) => {
   if (!img) return; e.preventDefault();
   const factor = Math.exp(-e.deltaY * 0.0015);
-  const newScale = clamp(scale * factor, minScale, parseFloat(zoomSlider.max));
+  const newScale = clamp(scale * factor, parseFloat(zoomSlider.min), parseFloat(zoomSlider.max));
+
+  // Zoom about the canvas center
   const cx = DST_W / 2, cy = DST_H / 2;
   tx = cx + (tx - cx) * (newScale / scale);
   ty = cy + (ty - cy) * (newScale / scale);
   scale = newScale;
+
   zoomSlider.value = String(scale);
+  emitZoomInput();  // keep Zoom (..%) in sync
   draw();
-}, { passive: false });
+}, { passive:false });
 
 zoomSlider.addEventListener("input", () => {
   if (!img) return;
-  scale = clamp(parseFloat(zoomSlider.value) || minScale, minScale, parseFloat(zoomSlider.max));
+  scale = clamp(parseFloat(zoomSlider.value) || minScale, parseFloat(zoomSlider.min), parseFloat(zoomSlider.max));
   draw();
 });
 
@@ -132,7 +147,7 @@ downloadBtn.addEventListener("click", () => {
   const url = canvas.toDataURL("image/png");
   const a = document.createElement("a");
   a.href = url;
-  a.download = "content-card.png"; // was "top-right-rounded.png"
+  a.download = "content-card.png";
   document.body.appendChild(a);
   a.click();
   a.remove();
