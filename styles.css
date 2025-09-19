@@ -35,49 +35,47 @@ body{
   color:var(--ink);
   font:16px/1.6 "Euclid", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
+*, *::before, *::after { box-sizing: border-box; }
 
 /* ===== Layout ===== */
 .wrap{max-width:720px;margin:36px auto 80px;padding:0 20px}
 
 /* Unified content card */
 .card{
-  background:none;
-  border:none;
-  box-shadow:none;
-  padding:0;
-  display:grid;
-  gap:0;
+  width:470px;
+  margin:0 auto;
+  background:var(--card);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  display:block;
 }
 
 /* Card copy (top section) */
 .card-copy{
-  width:470px; 
-  margin:0 auto;
-  background:var(--card);
-  border-radius:18px 18px 0 0;
   padding:24px;
-  box-shadow:var(--shadow);
 }
 .card-copy h1{
-  margin:0 0 6px;
-  font-size:44px;
-  line-height:1.15;
-  font-weight:400; /* Regular */
+  margin:0;
+  font-size:38px;              /* slightly smaller */
+  line-height:1.2;
+  font-weight:400;             /* Regular */
   color:var(--brand);
 }
 .card-copy p{
-  margin:0; color:#51616B; font-size:18px;
+  margin:10px 0 0;             /* little breather above */
+  color:#51616B;
+  font-size:18px;
 }
 
 /* Preview (bottom section of the card) */
 .preview{
   position:relative;
   width:470px; height:200px;
-  margin:0 auto;
+  margin:0;
   background:var(--card);
   border-radius:0 0 18px 18px;
   overflow:hidden;
-  box-shadow:var(--shadow);
 }
 canvas{
   display:block;
