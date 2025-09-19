@@ -25,7 +25,6 @@
 
         <!-- Upload hint (not baked into export; hidden after an image loads) -->
         <div id="emptyHint" class="empty-hint" aria-hidden="true">
-          <!-- Inline upload icon in brand green -->
           <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
             <path d="M12 3l4.5 4.5-1.4 1.4L13 6.8V16h-2V6.8L8.9 8.9 7.5 7.5 12 3zM5 18h14v2H5z" fill="#38A45F"/>
           </svg>
@@ -62,30 +61,37 @@
   <script type="module" src="./app.js"></script>
 
   <script>
-    // Pretty "Upload" button → hidden #file input (app.js listens on these IDs). 
+    // Pretty "Upload" button → hidden #file input
     const chooseBtn = document.getElementById('chooseFileBtn');
     const fileInput = document.getElementById('file');
     chooseBtn.addEventListener('click', () => fileInput.click());
 
-    // Live Zoom % readout. % = value / min * 100.
+    // Live Zoom % readout + filled track
     const zoom = document.getElementById('zoom');
     const zoomPct = document.getElementById('zoomPct');
 
-    function updateZoomPct() {
+    function updateZoomUI() {
       const min = parseFloat(zoom.min || '1');
+      const max = parseFloat(zoom.max || '3');
       const val = parseFloat(zoom.value || min);
+
+      // Display "Zoom (NN%)" relative to min cover scale
       const pct = Math.max(0, Math.round((val / min) * 100));
       zoomPct.textContent = pct + '%';
+
+      // Fill % along the slider between min..max
+      const fill = max > min ? ((val - min) / (max - min)) * 100 : 0;
+      zoom.style.setProperty('--fill', `${fill}%`);
     }
 
-    // Update when user drags the slider…
-    zoom.addEventListener('input', updateZoomPct);
+    zoom.addEventListener('input', updateZoomUI);
 
-    // …and also when app.js programmatically changes min/value.
-    const obs = new MutationObserver(updateZoomPct);
-    obs.observe(zoom, { attributes: true, attributeFilter: ['min', 'value'] });
+    // Also update when app.js changes min/max/value programmatically
+    const obs = new MutationObserver(updateZoomUI);
+    obs.observe(zoom, { attributes: true, attributeFilter: ['min', 'max', 'value'] });
 
-    updateZoomPct();
+    // Initial
+    updateZoomUI();
   </script>
 
   <noscript>Please enable JavaScript to use the image maker.</noscript>
