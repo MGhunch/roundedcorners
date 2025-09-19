@@ -9,20 +9,23 @@
   --shadow: 0 12px 30px rgba(0,0,0,.12);
 }
 
-/* ===== Euclid font =====
-   Drop Euclid .woff2 files into /fonts and uncomment these.
-   (File names are examples; use yours.)
+/* ===== Euclid font (webfonts in /fonts) ===== */
 @font-face{
   font-family:"Euclid";
-  src:url("./fonts/EuclidCircularA-Regular.woff2") format("woff2");
+  src: url("./fonts/euclidcirculara-regular-webfont.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap;
 }
 @font-face{
   font-family:"Euclid";
-  src:url("./fonts/EuclidCircularA-Medium.woff2") format("woff2");
-  font-weight:500; font-style:normal; font-display:swap;
+  src: url("./fonts/euclidcirculara-semibold-webfont.woff2") format("woff2");
+  font-weight:600; font-style:normal; font-display:swap;
 }
-*/
+@font-face{
+  font-family:"Euclid";
+  src: url("./fonts/euclidcirculara-light-webfont.woff2") format("woff2");
+  font-weight:300; font-style:normal; font-display:swap;
+}
+
 html,body{height:100%}
 body{
   margin:0;
@@ -43,7 +46,7 @@ body{
 
 .card-copy h1{
   margin:0 0 6px;
-  font-size:34px; line-height:1.2; font-weight:500;
+  font-size:34px; line-height:1.2; font-weight:600; /* semibold */
   color:var(--brand);
 }
 .card-copy p{
@@ -64,25 +67,20 @@ body{
 }
 canvas{
   max-width:100%; height:auto; display:block;
-  border-radius:18px; /* visual only; the real rounding is done in app.js */
-  touch-action:none;  /* keeps your pointer events working smoothly */
+  border-radius:18px; /* visual only; real rounding happens in JS */
+  touch-action:none;  /* keeps pointer events smooth */
 }
 
 /* ===== Controls ===== */
 .controls{margin-top:28px}
 
-.slider-wrap{
-  position:relative; padding:16px 0 28px;
-}
+.slider-wrap{ position:relative; padding:16px 0 28px; }
+
 input[type="range"]{
   -webkit-appearance:none; appearance:none;
   width:100%; height:20px; background:transparent; outline:none;
 }
-input[type="range"]::-webkit-slider-runnable-track{
-  height:6px; border-radius:999px;
-  border:2px solid var(--brand);
-  background:transparent;
-}
+input[type="range"]::-webkit-slider-runnable-track,
 input[type="range"]::-moz-range-track{
   height:6px; border-radius:999px;
   border:2px solid var(--brand);
