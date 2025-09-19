@@ -23,9 +23,13 @@
         <!-- Fixed 470×200 canvas; app.js draws to this -->
         <canvas id="out" width="470" height="200" aria-label="preview"></canvas>
 
-        <!-- Spec badge (not baked into export) -->
-        <div class="spec-badge" aria-hidden="true">
-          470×200 • TL 0 • TR 40 • BR 12 • BL 12
+        <!-- Upload hint (not baked into export; hidden after an image loads) -->
+        <div id="emptyHint" class="empty-hint" aria-hidden="true">
+          <!-- Inline upload icon in brand green -->
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+            <path d="M12 3l4.5 4.5-1.4 1.4L13 6.8V16h-2V6.8L8.9 8.9 7.5 7.5 12 3zM5 18h14v2H5z" fill="#38A45F"/>
+          </svg>
+          <span>Upload your image</span>
         </div>
       </div>
     </div>
@@ -35,7 +39,7 @@
       <div class="slider-wrap">
         <div class="slider-card">
           <label for="zoom" class="slider-title">
-            Zoom <span id="zoomPct" aria-live="polite">100%</span>
+            Zoom (<span id="zoomPct" aria-live="polite">100%</span>)
           </label>
           <input id="zoom" type="range" min="1" max="3" step="0.01" value="1" />
         </div>
@@ -51,21 +55,19 @@
       </div>
     </div>
 
-    <!-- Keep these for app.js logic (hidden in UI) -->
-    <input id="rTR" type="number" value="40" class="visually-hidden" />
+    <!-- Keep this for app.js logic -->
     <button id="reset" class="visually-hidden">Reset view</button>
   </div>
 
   <script type="module" src="./app.js"></script>
 
   <script>
-    // Pretty "Upload" button → hidden #file input (app.js listens on #file / #download / #zoom / #reset). 
+    // Pretty "Upload" button → hidden #file input (app.js listens on these IDs). 
     const chooseBtn = document.getElementById('chooseFileBtn');
     const fileInput = document.getElementById('file');
     chooseBtn.addEventListener('click', () => fileInput.click());
 
-    // Live Zoom % readout.
-    // app.js updates #zoom.min when an image loads; we compute % = value/min * 100.
+    // Live Zoom % readout. % = value / min * 100.
     const zoom = document.getElementById('zoom');
     const zoomPct = document.getElementById('zoomPct');
 
@@ -75,13 +77,14 @@
       const pct = Math.max(0, Math.round((val / min) * 100));
       zoomPct.textContent = pct + '%';
     }
+
+    // Update when user drags the slider…
     zoom.addEventListener('input', updateZoomPct);
 
-    // Observe attribute changes (app.js changes zoom.min in resetView)
+    // …and also when app.js programmatically changes min/value.
     const obs = new MutationObserver(updateZoomPct);
     obs.observe(zoom, { attributes: true, attributeFilter: ['min', 'value'] });
 
-    // Initial label
     updateZoomPct();
   </script>
 
