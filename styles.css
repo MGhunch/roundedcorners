@@ -1,16 +1,16 @@
 /* ===== Brand ===== */
 :root{
-  --brand:#38A45F;         /* primary green */
-  --bg:#F3F5F7;            /* page grey */
-  --ink:#1F2A2E;           /* primary text */
-  --muted:#6B7A85;         /* secondary text */
-  --card:#FFFFFF;          /* surface */
+  --brand:#38A45F;
+  --bg:#F3F5F7;
+  --ink:#1F2A2E;
+  --muted:#6B7A85;
+  --card:#FFFFFF;
   --ring: rgba(56,164,95,.35);
   --shadow: 0 16px 40px rgba(31,42,46,.12);
   --border:#E2E7EB;
 }
 
-/* ===== Euclid font (webfonts in /fonts) ===== */
+/* ===== Euclid font ===== */
 @font-face{
   font-family:"Euclid";
   src:url("./fonts/euclidcirculara-regular-webfont.woff2") format("woff2");
@@ -39,55 +39,57 @@ body{
 /* ===== Layout ===== */
 .wrap{max-width:720px;margin:36px auto 80px;padding:0 20px}
 
+/* Unified content card */
 .card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:18px;
-  box-shadow:var(--shadow);
-  padding:24px;
+  background:none;
+  border:none;
+  box-shadow:none;
+  padding:0;
   display:grid;
-  gap:16px;
+  gap:0;
 }
 
-/* Headline = Regular weight, larger, 2 lines */
+/* Card copy (top section) */
+.card-copy{
+  background:var(--card);
+  border-radius:18px 18px 0 0;
+  padding:24px;
+  box-shadow:var(--shadow);
+}
 .card-copy h1{
   margin:0 0 6px;
   font-size:44px;
   line-height:1.15;
-  font-weight:400;                /* Regular */
+  font-weight:400; /* Regular */
   color:var(--brand);
 }
 .card-copy p{
   margin:0; color:#51616B; font-size:18px;
 }
 
-/* ===== Preview (exact-size content block) ===== */
+/* Preview (bottom section of the card) */
 .preview{
   position:relative;
-  width:470px; height:200px;      /* matches export size */
+  width:470px; height:200px;
   margin:0 auto;
-  border-radius:18px;
-  overflow:hidden;                /* stick to rounded rect */
-  background:
-    linear-gradient(45deg,#0000000f 25%,transparent 25%) 0 0/24px 24px,
-    linear-gradient(45deg,transparent 75%,#0000000f 75%) 0 0/24px 24px,
-    linear-gradient(45deg,#0000000f 25%,transparent 25%) 12px 12px/24px 24px,
-    linear-gradient(45deg,transparent 75%,#0000000f 75%) 12px 12px/24px 24px;
+  background:var(--card);
+  border-radius:0 0 18px 18px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
 }
-
 canvas{
   display:block;
-  width:100%; height:100%;        /* 1:1 viewer to bitmap */
-  border-radius:0;                /* visual rounding handled by container */
+  width:100%; height:100%;
+  border-radius:0;
   touch-action:none;
 }
 
-/* ===== Clickable upload overlay (button) ===== */
+/* Upload overlay button */
 .empty-hint{
   position:absolute; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:8px;
-  font:600 14px/1 "Euclid", system-ui, sans-serif;
+  gap:12px;
+  font:400 18px/1.6 "Euclid", system-ui, sans-serif; /* same as body copy */
   color:var(--muted);
   background:rgba(255,255,255,.72);
   border:2px dashed var(--border);
@@ -104,17 +106,23 @@ canvas{
   outline:3px solid var(--ring);
   outline-offset:3px;
 }
-
-/* ===== Controls ===== */
-.controls{margin-top:18px}
-
-.slider-wrap{margin:0}
-.slider-card{
-  background:var(--card); border:1px solid var(--border);
-  border-radius:14px; padding:14px 16px;
-  box-shadow:0 6px 16px rgba(0,0,0,.06);
+.empty-hint svg{
+  width:42px; height:42px; /* bigger arrow */
 }
 
+/* ===== Controls ===== */
+.controls{margin-top:24px}
+
+/* Slider card locked to card width */
+.slider-card{
+  width:470px;
+  margin:0 auto;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 16px;
+  box-shadow:0 6px 16px rgba(0,0,0,.06);
+}
 .slider-title{
   float:right;
   font:600 13px/1 "Euclid", system-ui, sans-serif;
@@ -122,7 +130,7 @@ canvas{
   margin-bottom:10px;
 }
 
-/* Range input with brand-colored filled track */
+/* Grey track + green fill */
 input[type="range"]{
   -webkit-appearance:none; appearance:none;
   width:100%; height:20px; background:transparent; outline:none;
@@ -131,18 +139,19 @@ input[type="range"]::-webkit-slider-runnable-track{
   height:8px; border-radius:999px;
   background:
     linear-gradient(var(--brand), var(--brand)) 0/ var(--fill, 0%) 100% no-repeat,
-    #fff;
-  border:2px solid var(--brand);
+    #DADFE3;
+  border:none;
 }
 input[type="range"]::-moz-range-track{
   height:8px; border-radius:999px;
-  background:#fff;
-  border:2px solid var(--brand);
+  background:#DADFE3;
+  border:none;
 }
 input[type="range"]::-moz-range-progress{
   height:8px; border-radius:999px;
   background:var(--brand);
 }
+/* Thumb */
 input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance:none; appearance:none;
   width:28px; height:28px; margin-top:-13px;
