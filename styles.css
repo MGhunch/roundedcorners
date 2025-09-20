@@ -93,7 +93,7 @@ canvas{
   color:var(--muted);
   background:rgba(255,255,255,.72);
   border:2px dashed var(--border);
-  border-radius:18px;
+  border-radius:0 40px 12px 12px;
   cursor:pointer;
   transition:background .2s, border-color .2s, box-shadow .2s;
 }
@@ -125,7 +125,7 @@ canvas{
 }
 .slider-title{
   float:right;
-  font:600 13px/1 "Euclid", system-ui, sans-serif;
+  font:400 13px/1 "Euclid", system-ui, sans-serif;
   color:var(--muted);
   margin-bottom:10px;
 }
