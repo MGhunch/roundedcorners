@@ -25,7 +25,7 @@
 
         <!-- Overlay upload hint button -->
         <button id="emptyHint" type="button" class="empty-hint" aria-label="Upload an image">
-          <img src="./images/noun-upload-7938385-00A45F.png" alt="" />
+          <img src="./images/upload.png" alt="" />
           <span>Upload your image</span>
         </button>
       </div>
@@ -40,7 +40,7 @@
 
       <div class="buttons">
         <button id="download" class="btn btn-outline">
-          <img src="./images/noun-download-5060491-00A45F.png" alt="" />
+          <img src="./images/download.png" alt="" />
           <span>Download your file</span>
         </button>
       </div>
@@ -63,7 +63,7 @@
     const zoomSlider = document.getElementById('zoom');
     const zoomPct = document.getElementById('zoomPct');
     zoomSlider.addEventListener('input', () => {
-      const pct = Math.round((zoomSlider.value / zoomSlider.max) * 200); // scaled to %
+      const pct = Math.round((zoomSlider.value / zoomSlider.max) * 200);
       zoomPct.textContent = pct + '%';
     });
   </script>
