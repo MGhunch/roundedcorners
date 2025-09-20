@@ -113,6 +113,10 @@ canvas{
 /* ===== Controls ===== */
 .controls{margin-top:24px}
 
+/* Default fill before any image is uploaded */
+#zoom {
+  --fill: 50%; /* start centered */
+}
 /* Slider card locked to card width */
 .slider-card{
   width:470px;
