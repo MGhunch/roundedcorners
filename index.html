@@ -11,29 +11,29 @@
     <div class="card">
       <div class="card-copy">
         <h1>Need an image for your content card?</h1>
-        <p>Upload your image. Move it and zoom to find the perfect crop. Then hit download, easy.</p>
+        <p>Upload your image, move it around and zoom to find the perfect crop. Then hit download, easy..</p>
       </div>
 
       <!-- Hidden file input (used by app.js) -->
       <input id="file" type="file" accept="image/*" class="visually-hidden" />
 
-      <!-- Preview / canvas -->
+      <!-- Preview / canvas (470×200, TL 0, TR 40, BR 12, BL 12) -->
       <div class="preview">
         <canvas id="out" width="470" height="200" aria-label="preview"></canvas>
 
-        <!-- Overlay upload hint button with SVG dashed outline -->
+        <!-- Upload hint button with precise dashed outline using SVG arcs -->
         <button id="emptyHint" type="button" class="empty-hint" aria-label="Upload an image">
           <svg class="hint-border" viewBox="0 0 470 200" aria-hidden="true" focusable="false">
-            <!-- precise outline path: TL 0, TR 40, BR 12, BL 12 -->
+            <!-- Rounded rectangle path:
+                 TL 0, TR 40, BR 12, BL 12 (stroke centered on the edge) -->
             <path d="
-              M 1,1
-              H 429
-              Q 469,1 469,41
-              V 187
-              Q 469,199 457,199
-              H 13
-              Q 1,199 1,187
-              V 1
+              M 0,0
+              H 430
+              A 40,40 0 0 1 470,40
+              V 188
+              A 12,12 0 0 1 458,200
+              H 12
+              A 12,12 0 0 1 0,188
               Z
             " fill="none"/>
           </svg>
@@ -48,12 +48,12 @@
     <div class="controls">
       <div class="slider-card">
         <div class="slider-title">Zoom (<span id="zoomPct">100%</span>)</div>
-        <!-- Symmetric default so thumb is centered pre-upload -->
+        <!-- Centered by script pre-upload; app.js resets to cover-scale on load -->
         <input id="zoom" type="range" min="0.5" max="1.5" step="0.01" value="1" />
       </div>
 
       <div class="buttons">
-        <button id="download" class="btn btn-outline">
+        <button id="download" class="btn btn-outline" disabled>
           <img src="./images/download.png" alt="" />
           <span>Download your file</span>
         </button>
@@ -83,12 +83,11 @@
         const fill = ((val - min) / (max - min)) * 100;
         z.style.setProperty('--fill', Math.max(0, Math.min(100, fill)) + '%');
 
-        // Percent reads 100% at the middle (cover scale once an image loads)
         const mid = (min + max) / 2;
         if (pct) pct.textContent = Math.round((val / mid) * 100) + '%';
       }
 
-      // Center at load and draw initial fill
+      // Center slider visually before any image is loaded
       const mid = (parseFloat(z.min) + parseFloat(z.max)) / 2;
       z.value = String(mid);
       sync();
