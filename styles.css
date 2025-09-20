@@ -147,7 +147,6 @@ canvas{
 }
 
 /* slider track */
-#zoom { --fill: 50%; }
 input[type="range"]{
   -webkit-appearance:none; appearance:none;
   width:100%; height:20px; background:transparent; outline:none;
