@@ -61,30 +61,37 @@ function draw() {
   ctx.restore();
 }
 
+// --- slider UI sync ---
 function updateZoomUI() {
   const pctEl = document.getElementById("zoomPct");
   if (pctEl && minScale) {
     const pct = Math.round((scale / minScale) * 100);
     pctEl.textContent = `${pct}%`;
   }
-
   const min = parseFloat(zoomSlider.min);
   const max = parseFloat(zoomSlider.max);
   const fill = ((scale - min) / (max - min)) * 100;
   zoomSlider.style.setProperty("--fill", `${clamp(fill, 0, 100)}%`);
 }
 
+// --- initialize slider to midpoint visually ---
+(function bootSliderToMid() {
+  const min = parseFloat(zoomSlider.min) || 0.5;
+  const max = parseFloat(zoomSlider.max) || 2.0;
+  const mid = (min + max) / 2;
+  zoomSlider.value = String(mid);
+  scale = mid;
+  const fill = ((mid - min) / (max - min)) * 100;
+  zoomSlider.style.setProperty("--fill", `${fill}%`);
+})();
+
 function resetView() {
   if (!img) return;
-
   minScale = coverScale(img.naturalWidth, img.naturalHeight);
-
-  // Expanded range: 50% .. 200% of cover-scale
   zoomSlider.min = String(minScale * 0.5);
   zoomSlider.max = String(minScale * 2.0);
-  scale = minScale;            // 100%
+  scale = minScale;
   zoomSlider.value = String(scale);
-
   tx = 0; ty = 0;
 
   const hint = document.getElementById("emptyHint");
@@ -128,7 +135,6 @@ canvas.addEventListener("wheel", (e) => {
   if (!img) return; e.preventDefault();
   const min = parseFloat(zoomSlider.min);
   const max = parseFloat(zoomSlider.max);
-
   const factor = Math.exp(-e.deltaY * 0.0015);
   const newScale = clamp(scale * factor, min, max);
 
@@ -166,5 +172,6 @@ downloadBtn.addEventListener("click", () => {
 
 downloadBtn.disabled = true;
 
+// initial paint
 updateZoomUI();
 draw();
