@@ -16,31 +16,34 @@ canvas.width = DST_W; canvas.height = DST_H;
 
 let img = null, tx = 0, ty = 0, scale = 1, minScale = 1, dragging = false, lastX = 0, lastY = 0;
 
+// Keep a safe base name from the uploaded file for export
+let originalNameBase = "image";
+
+// --- helpers ---
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const coverScale = (sw, sh) => Math.max(DST_W / sw, DST_H / sh);
 
+// base name (no extension) + sanitize to something filesystem-safe
+function makeSafeBase(filename = "") {
+  const base = String(filename).replace(/\.[^.]+$/,""); // drop extension
+  // normalize accents, keep letters/numbers/dash/underscore, collapse spaces
+  let safe = base.normalize?.("NFKD").replace(/[\u0300-\u036f]/g,"") || base;
+  safe = safe.replace(/[^a-z0-9_-]+/gi, "-").replace(/^-+|-+$/g, "");
+  if (!safe) safe = "image";
+  // avoid mega-long names
+  if (safe.length > 60) safe = safe.slice(0,60).replace(/-+$/,"");
+  return safe;
+}
+
 function roundedClipPath(ctx) {
   ctx.beginPath();
-
-  // Start at top-left (square)
   ctx.moveTo(0, 0);
-
-  // Top edge → before TR
   ctx.lineTo(DST_W - R_TR, 0);
-  // TR corner
   if (R_TR) ctx.quadraticCurveTo(DST_W, 0, DST_W, R_TR); else ctx.lineTo(DST_W, 0);
-
-  // Right edge → before BR
   ctx.lineTo(DST_W, DST_H - R_BR);
-  // BR corner
   if (R_BR) ctx.quadraticCurveTo(DST_W, DST_H, DST_W - R_BR, DST_H); else ctx.lineTo(DST_W, DST_H);
-
-  // Bottom edge → before BL
   ctx.lineTo(R_BL, DST_H);
-  // BL corner
   if (R_BL) ctx.quadraticCurveTo(0, DST_H, 0, DST_H - R_BL); else ctx.lineTo(0, DST_H);
-
-  // Left edge back up (TL is 0 so straight line)
   ctx.lineTo(0, 0);
   ctx.closePath();
 }
@@ -69,12 +72,9 @@ function draw() {
 function updateZoomUI() {
   const pctEl = document.getElementById("zoomPct");
   if (pctEl && minScale) {
-    // Percent relative to the cover scale (minScale): 100% at default
-    const pct = Math.round((scale / minScale) * 100);
+    const pct = Math.round((scale / minScale) * 100);   // 100% at cover
     pctEl.textContent = `${pct}%`;
   }
-
-  // Filled track (based on slider position within its range)
   const min = parseFloat(zoomSlider.min);
   const max = parseFloat(zoomSlider.max);
   const fill = ((scale - min) / (max - min)) * 100;
@@ -87,10 +87,10 @@ function resetView() {
   // Cover scale to fill 470×200
   minScale = coverScale(img.naturalWidth, img.naturalHeight);
 
-  // Range symmetric around 100% so the thumb sits in the middle at default
-  zoomSlider.min = String(minScale * 0.5);  // 50%
-  zoomSlider.max = String(minScale * 1.5);  // 150%
-  scale = minScale;                         // 100% (middle)
+  // Range 50% … 150%, start at 100% (middle)
+  zoomSlider.min = String(minScale * 0.5);
+  zoomSlider.max = String(minScale * 1.5);
+  scale = minScale;                    // 100%
   zoomSlider.value = String(scale);
 
   tx = 0; ty = 0;
@@ -105,8 +105,10 @@ function resetView() {
 
 // --- events ---
 fileInput.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
   try {
-    img = await loadImageFromFile(e.target.files?.[0]); // JPG/PNG/WebP support
+    if (file) originalNameBase = makeSafeBase(file.name);
+    img = await loadImageFromFile(file); // JPG/PNG/WebP support
     resetView();
     downloadBtn.disabled = false;
   } catch (err) {
@@ -135,7 +137,6 @@ canvas.addEventListener("wheel", (e) => {
   if (!img) return; e.preventDefault();
   const min = parseFloat(zoomSlider.min);
   const max = parseFloat(zoomSlider.max);
-
   const factor = Math.exp(-e.deltaY * 0.0015);
   const newScale = clamp(scale * factor, min, max);
 
@@ -166,7 +167,8 @@ downloadBtn.addEventListener("click", () => {
   const url = canvas.toDataURL("image/png");
   const a = document.createElement("a");
   a.href = url;
-  a.download = "content-card.png";
+  // Use the uploaded file's base name + "rounded.png" (per your spec, no hyphen)
+  a.download = `${originalNameBase}_rounded.png`;
   document.body.appendChild(a);
   a.click();
   a.remove();
