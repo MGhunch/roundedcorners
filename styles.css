@@ -1,34 +1,38 @@
-/* ===== Brand ===== */
+/* ========= Brand ========= */
 :root{
   --brand:#38A45F;
   --bg:#F2F4F6;
   --ink:#1F2A2E;
   --muted:#6B7A85;
   --card:#FFFFFF;
-  --ring: rgba(56,164,95,.35);
-  /* beefed-up shadow */
-  --shadow:
-    0 18px 42px rgba(0,0,0,.16),
-    0 3px 10px rgba(0,0,0,.06);
+
+  /* shadows */
+  --shadow: 0 10px 24px rgba(0,0,0,.14);
+  --shadow-soft: 0 2px 8px rgba(0,0,0,.08);
+
+  /* checkerboard (a little darker so it reads) */
+  --checker-a:#f1f1f1;
+  --checker-b:#e7e7e7;
 }
 
-/* ===== Euclid font (webfonts in /fonts) ===== */
+/* ========= Euclid font (webfonts in /fonts) ========= */
 @font-face{
   font-family:"Euclid";
-  src: url("./fonts/euclidcirculara-regular-webfont.woff2") format("woff2");
+  src:url("./fonts/euclidcirculara-regular-webfont.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap;
 }
 @font-face{
   font-family:"Euclid";
-  src: url("./fonts/euclidcirculara-semibold-webfont.woff2") format("woff2");
+  src:url("./fonts/euclidcirculara-semibold-webfont.woff2") format("woff2");
   font-weight:600; font-style:normal; font-display:swap;
 }
 @font-face{
   font-family:"Euclid";
-  src: url("./fonts/euclidcirculara-light-webfont.woff2") format("woff2");
+  src:url("./fonts/euclidcirculara-light-webfont.woff2") format("woff2");
   font-weight:300; font-style:normal; font-display:swap;
 }
 
+/* ========= Base ========= */
 html,body{height:100%}
 body{
   margin:0;
@@ -37,49 +41,52 @@ body{
   font:16px/1.5 "Euclid", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* ===== Layout ===== */
+/* ========= Layout ========= */
 .wrap{max-width:880px;margin:48px auto 80px;padding:0 24px}
 
 .card{
   background:var(--card);
   border-radius:18px;
-  box-shadow: var(--shadow);
-  padding:28px 28px 20px;
+  padding:28px 28px 22px;
+  box-shadow: var(--shadow), var(--shadow-soft);
 }
 
 .card-copy h1{
-  margin:0 0 6px;
+  margin:0 0 8px;
   font-size:34px; line-height:1.2; font-weight:400; /* regular */
   color:var(--brand);
 }
 .card-copy p{
-  margin:0 0 18px; color:#51616B;
+  margin:0 0 18px;
+  color:#51616B;
   font-size:18px;
-  padding-top:6px; /* little breather */
+  padding-top:6px; /* small breather */
 }
 
-/* ===== Preview ===== */
+/* ========= Preview (470×200 | TL 0, TR 40, BR 12, BL 12) ========= */
 .preview{
   position:relative;
   width:470px; height:200px;
-  margin:0;
+  margin:0 auto;                   /* center the preview */
   border-radius:0 40px 12px 12px;
   overflow:hidden;
-  /* darker checker (clarity boost) */
   background:
-    linear-gradient(45deg,#0000002B 25%,transparent 25%) 0 0/24px 24px,
-    linear-gradient(45deg,transparent 75%,#0000002B 75%) 0 0/24px 24px,
-    linear-gradient(45deg,#0000002B 25%,transparent 25%) 12px 12px/24px 24px,
-    linear-gradient(45deg,transparent 75%,#0000002B 75%) 12px 12px/24px 24px,
-    var(--card);
+    linear-gradient(45deg,var(--checker-a) 25%,transparent 25%) 0 0/24px 24px,
+    linear-gradient(45deg,transparent 75%,var(--checker-a) 75%) 0 0/24px 24px,
+    linear-gradient(45deg,var(--checker-a) 25%,transparent 25%) 12px 12px/24px 24px,
+    linear-gradient(45deg,transparent 75%,var(--checker-a) 75%) 12px 12px/24px 24px,
+    var(--checker-b);
+  box-shadow: var(--shadow-soft);
 }
 canvas{
-  max-width:100%; height:auto; display:block;
-  border-radius:0; /* JS handles clipping */
+  display:block;
+  max-width:100%;
+  height:auto;
+  border-radius:0;   /* clipping is done in JS */
   touch-action:none;
 }
 
-/* ===== Upload hint ===== */
+/* ========= Upload hint over preview ========= */
 .empty-hint{
   position:absolute; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -93,10 +100,12 @@ canvas{
   transition:background .2s, box-shadow .2s, opacity .2s;
 }
 .empty-hint:hover{ background:rgba(255,255,255,.88); }
-.empty-hint:focus-visible{ outline:3px solid var(--ring); outline-offset:3px; }
+.empty-hint:focus-visible{ outline:3px solid rgba(56,164,95,.35); outline-offset:3px; }
+
+/* Keep the upload icon a sensible size */
 .empty-hint img{ width:42px; height:42px; }
 
-/* Dashed outline */
+/* SVG dashed outline — sits on top, matches rounded corners */
 .hint-border{
   position:absolute; inset:0;
   width:100%; height:100%;
@@ -110,9 +119,10 @@ canvas{
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
   shape-rendering:geometricPrecision;
+  fill:none;
 }
 
-/* ===== Controls ===== */
+/* ========= Controls ========= */
 .controls{margin-top:28px}
 
 .slider-card{
@@ -122,7 +132,7 @@ canvas{
   border:1px solid #E2E7EB;
   border-radius:14px;
   padding:14px 16px 18px;
-  box-shadow:var(--shadow);
+  box-shadow: var(--shadow-soft);
 }
 .slider-title{
   float:right;
@@ -131,6 +141,7 @@ canvas{
   margin-bottom:10px;
 }
 
+/* filled track (WebKit) */
 #zoom { --fill: 50%; }
 input[type="range"]{
   -webkit-appearance:none; appearance:none;
@@ -143,31 +154,31 @@ input[type="range"]::-webkit-slider-runnable-track{
     #DADFE3;
   border:none;
 }
-input[type="range"]::-moz-range-track{
-  height:8px; border-radius:999px;
-  background:#DADFE3;
-  border:none;
-}
-input[type="range"]::-moz-range-progress{
-  height:8px; border-radius:999px;
-  background:var(--brand);
-}
 input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance:none; appearance:none;
   width:28px; height:28px; margin-top:-13px;
   border-radius:50%;
   background:var(--brand);
-  box-shadow:0 2px 6px var(--ring);
+  box-shadow:0 2px 6px rgba(56,164,95,.35);
   border:0; transition:transform .1s ease;
+}
+input[type="range"]:active::-webkit-slider-thumb{ transform:scale(1.06); }
+
+/* Firefox */
+input[type="range"]::-moz-range-track{
+  height:8px; border-radius:999px; background:#DADFE3; border:none;
+}
+input[type="range"]::-moz-range-progress{
+  height:8px; border-radius:999px; background:var(--brand);
 }
 input[type="range"]::-moz-range-thumb{
   width:28px; height:28px; border-radius:50%;
-  background:var(--brand); border:0; box-shadow:0 2px 6px var(--ring);
+  background:var(--brand); border:0; box-shadow:0 2px 6px rgba(56,164,95,.35);
   transition:transform .1s ease;
 }
-input[type="range"]:active::-webkit-slider-thumb{ transform:scale(1.06); }
 input[type="range"]:active::-moz-range-thumb{ transform:scale(1.06); }
 
+/* ========= Buttons ========= */
 .buttons{
   display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin-top:16px;
 }
@@ -180,63 +191,19 @@ input[type="range"]:active::-moz-range-thumb{ transform:scale(1.06); }
 .btn-outline{
   background:#fff; color:var(--brand);
   border:2px solid var(--brand);
-  box-shadow:var(--shadow);
+  box-shadow: var(--shadow-soft);
 }
 .btn-outline:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.08); }
 .btn-outline:active{ transform:translateY(0); box-shadow:none; }
-.btn:focus-visible{ outline:3px solid var(--ring); outline-offset:3px; }
+.btn:focus-visible{ outline:3px solid rgba(56,164,95,.35); outline-offset:3px; }
 
-.icon{font-size:20px; line-height:1}
+/* Keep button icons tidy */
+.btn img{ width:22px; height:22px; }
 
-/* ===== A11y helpers ===== */
+/* ========= A11y helper ========= */
 .visually-hidden{
-  position:absolute !important; left:-9999px !important; width:1px !important; height:1px !important; overflow:hidden !important;
-}
-/* === Stability patch (safe overrides) === */
-.preview{
-  position: relative !important;
-  width: 470px !important;
-  height: 200px !important;
-  border-radius: 0 40px 12px 12px !important;
-  overflow: hidden !important;
-}
-
-.preview canvas{
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-.empty-hint{
-  position: absolute !important;
-  inset: 0 !important;
-  z-index: 2 !important;
-  border-radius: 0 40px 12px 12px !important;
-}
-
-.empty-hint img{
-  width: 42px !important;
-  height: 42px !important;
-  display: block !important;
-}
-
-.hint-border{
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  display: block !important;
-  pointer-events: none !important;
-}
-
-.hint-border path{
-  stroke: var(--brand) !important;
-  stroke-width: 2 !important;
-  stroke-dasharray: 6 6 !important;
-  stroke-linecap: round !important;
-  stroke-linejoin: round !important;
-  vector-effect: non-scaling-stroke !important;
-  shape-rendering: geometricPrecision !important;
+  position:absolute !important;
+  left:-9999px !important;
+  width:1px !important; height:1px !important;
+  overflow:hidden !important;
 }
