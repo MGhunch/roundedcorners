@@ -6,7 +6,10 @@
   --muted:#6B7A85;
   --card:#FFFFFF;
   --ring: rgba(56,164,95,.35);
-  --shadow: 0 12px 30px rgba(0,0,0,.12);
+  /* beefed-up shadow */
+  --shadow:
+    0 18px 42px rgba(0,0,0,.16),
+    0 3px 10px rgba(0,0,0,.06);
 }
 
 /* ===== Euclid font (webfonts in /fonts) ===== */
@@ -62,11 +65,12 @@ body{
   margin:0;
   border-radius:0 40px 12px 12px;
   overflow:hidden;
+  /* darker checker (clarity boost) */
   background:
-    linear-gradient(45deg,#00000022 25%,transparent 25%) 0 0/24px 24px,
-    linear-gradient(45deg,transparent 75%,#00000022 75%) 0 0/24px 24px,
-    linear-gradient(45deg,#00000022 25%,transparent 25%) 12px 12px/24px 24px,
-    linear-gradient(45deg,transparent 75%,#00000022 75%) 12px 12px/24px 24px,
+    linear-gradient(45deg,#0000002B 25%,transparent 25%) 0 0/24px 24px,
+    linear-gradient(45deg,transparent 75%,#0000002B 75%) 0 0/24px 24px,
+    linear-gradient(45deg,#0000002B 25%,transparent 25%) 12px 12px/24px 24px,
+    linear-gradient(45deg,transparent 75%,#0000002B 75%) 12px 12px/24px 24px,
     var(--card);
 }
 canvas{
