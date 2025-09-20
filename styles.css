@@ -45,7 +45,7 @@ body{
 .wrap{max-width:880px;margin:48px auto 80px;padding:0 24px}
 
 .card{
-  max-width: 440px;
+  max-width: 470px;
   margin: 0 auto;
   background:var(--card);
   border-radius:18px;
@@ -131,7 +131,7 @@ canvas{
 .controls{margin-top:28px}
 
 .slider-card{
-  max-width:440px;
+  max-width:470px;
   margin:0 auto;
   background:var(--card);
   border:1px solid #E2E7EB;
