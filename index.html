@@ -5,30 +5,27 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Content Card Image Maker</title>
 
-  <!-- Euclid + UI styles -->
+  <!-- Loads your Euclid + UI styles -->
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <div class="card-copy">
-        <!-- Two-line headline (Regular weight handled in CSS) -->
-        <h1>Need an image for<br>your content card?</h1>
-        <p>Just upload any image, use the zoom and move it around to find the perfect crop. Then hit download. Easy.</p>
+        <h1>Need an image for your content card?</h1>
+        <p>Upload your image, move it around and zoom to find the perfect crop. Then hit download, easy..</p>
       </div>
 
-      <!-- Hidden native file input (app.js listens on #file) -->
+      <!-- Hidden file input (used by app.js) -->
       <input id="file" type="file" accept="image/*" class="visually-hidden" />
 
+      <!-- Preview / canvas -->
       <div class="preview">
-        <!-- Fixed 470×200 canvas; app.js draws to this -->
         <canvas id="out" width="470" height="200" aria-label="preview"></canvas>
 
-        <!-- Upload overlay AS A BUTTON; app.js hides #emptyHint after load -->
+        <!-- Overlay upload hint button -->
         <button id="emptyHint" type="button" class="empty-hint" aria-label="Upload an image">
-          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-            <path d="M12 3l4.5 4.5-1.4 1.4L13 6.8V16h-2V6.8L8.9 8.9 7.5 7.5 12 3zM5 18h14v2H5z" fill="#38A45F"/>
-          </svg>
+          <img src="./images/noun-upload-7938385-00A45F.png" alt="" />
           <span>Upload your image</span>
         </button>
       </div>
@@ -36,65 +33,40 @@
 
     <!-- Controls -->
     <div class="controls">
-      <div class="slider-wrap">
-        <div class="slider-card">
-          <label for="zoom" class="slider-title">
-            Zoom (<span id="zoomPct" aria-live="polite">100%</span>)
-          </label>
-          <input id="zoom" type="range" min="1" max="3" step="0.01" value="1" />
-        </div>
+      <div class="slider-card">
+        <div class="slider-title">Zoom (<span id="zoomPct">100%</span>)</div>
+        <input id="zoom" type="range" min="1" max="3" step="0.01" value="1" />
       </div>
 
-      <!-- Single bottom action -->
       <div class="buttons">
         <button id="download" class="btn btn-outline">
-          <span class="icon" aria-hidden="true">⬇︎</span> Download your file
+          <img src="./images/noun-download-5060491-00A45F.png" alt="" />
+          <span>Download your file</span>
         </button>
       </div>
     </div>
 
-    <!-- Keep for app.js logic -->
+    <!-- Hidden reset (kept for app.js logic) -->
     <button id="reset" class="visually-hidden">Reset view</button>
   </div>
 
-  <!-- App logic -->
   <script type="module" src="./app.js"></script>
-
-  <!-- Small helpers: bridge upload overlay, update Zoom (NN%) and filled track -->
   <script>
-    // Make the overlay open the hidden file input
+    // Bridge overlay button → hidden file input
     const fileInput = document.getElementById('file');
-    const emptyHintBtn = document.getElementById('emptyHint');
-    if (emptyHintBtn) emptyHintBtn.addEventListener('click', () => fileInput.click());
-
-    // Live Zoom label + filled track
-    const zoom = document.getElementById('zoom');
-    const zoomPct = document.getElementById('zoomPct');
-
-    function updateZoomUI() {
-      const min = parseFloat(zoom.min || '1');
-      const max = parseFloat(zoom.max || '3');
-      const val = parseFloat(zoom.value || min);
-
-      // "Zoom (NN%)" — relative to cover scale (min)
-      const pct = Math.max(0, Math.round((val / min) * 100));
-      zoomPct.textContent = pct + '%';
-
-      // Filled track up to the thumb
-      const fill = max > min ? ((val - min) / (max - min)) * 100 : 0;
-      zoom.style.setProperty('--fill', `${fill}%`);
+    const emptyHint = document.getElementById('emptyHint');
+    if (emptyHint) {
+      emptyHint.addEventListener('click', () => fileInput.click());
     }
 
-    zoom.addEventListener('input', updateZoomUI);
-
-    // Also react when app.js updates min/max/value programmatically
-    const obs = new MutationObserver(updateZoomUI);
-    obs.observe(zoom, { attributes: true, attributeFilter: ['min', 'max', 'value'] });
-
-    // Initial paint
-    updateZoomUI();
+    // Keep zoom % label in sync with slider value
+    const zoomSlider = document.getElementById('zoom');
+    const zoomPct = document.getElementById('zoomPct');
+    zoomSlider.addEventListener('input', () => {
+      const pct = Math.round((zoomSlider.value / zoomSlider.max) * 200); // scaled to %
+      zoomPct.textContent = pct + '%';
+    });
   </script>
-
   <noscript>Please enable JavaScript to use the image maker.</noscript>
 </body>
 </html>
