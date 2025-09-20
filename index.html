@@ -24,16 +24,16 @@
         <!-- Upload hint button with precise dashed outline using SVG arcs -->
         <button id="emptyHint" type="button" class="empty-hint" aria-label="Upload an image">
           <svg class="hint-border" viewBox="0 0 470 200" aria-hidden="true" focusable="false">
-            <!-- Rounded rectangle path:
-                 TL 0, TR 40, BR 12, BL 12 (stroke centered on the edge) -->
+            <!-- Rounded rectangle inset by 1px: TL 0, TR 39, BR 11, BL 11 -->
             <path d="
-              M 0,0
-              H 430
-              A 40,40 0 0 1 470,40
-              V 188
-              A 12,12 0 0 1 458,200
+              M 1,1
+              H 429
+              A 39,39 0 0 1 469,40
+              V 187
+              A 11,11 0 0 1 458,199
               H 12
-              A 12,12 0 0 1 0,188
+              A 11,11 0 0 1 1,188
+              V 1
               Z
             " fill="none"/>
           </svg>
