@@ -12,8 +12,8 @@
   <div class="wrap">
     <div class="card">
       <div class="card-copy">
-        <h1>Need an image for <br>your content card?</h1>
-        <p>Just upload your image, move it and zoom to find the perfect crop. Then hit download, easy.</p>
+        <h1>Need an image for your content card?</h1>
+        <p>Upload your image, move it around and zoom to find the perfect crop. Then hit download, easy..</p>
       </div>
 
       <!-- Hidden file input (used by app.js) -->
@@ -35,7 +35,8 @@
     <div class="controls">
       <div class="slider-card">
         <div class="slider-title">Zoom (<span id="zoomPct">100%</span>)</div>
-        <input id="zoom" type="range" min="1" max="3" step="0.01" value="1" />
+        <!-- Default range symmetric (0.5–1.5) so thumb starts in middle -->
+        <input id="zoom" type="range" min="0.5" max="1.5" step="0.01" value="1" />
       </div>
 
       <div class="buttons">
@@ -62,10 +63,15 @@
     // Keep zoom % label in sync with slider value
     const zoomSlider = document.getElementById('zoom');
     const zoomPct = document.getElementById('zoomPct');
-    zoomSlider.addEventListener('input', () => {
-      const pct = Math.round((zoomSlider.value / zoomSlider.max) * 200);
-      zoomPct.textContent = pct + '%';
-    });
+    function updateInitialZoom() {
+      const min = parseFloat(zoomSlider.min);
+      const max = parseFloat(zoomSlider.max);
+      const mid = (min + max) / 2;
+      zoomSlider.value = String(mid);
+      zoomPct.textContent = '100%';
+      zoomSlider.style.setProperty('--fill', '50%');
+    }
+    updateInitialZoom();
   </script>
   <noscript>Please enable JavaScript to use the image maker.</noscript>
 </body>
