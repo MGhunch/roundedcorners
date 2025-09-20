@@ -19,11 +19,6 @@ let img = null, tx = 0, ty = 0, scale = 1, minScale = 1, dragging = false, lastX
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const coverScale = (sw, sh) => Math.max(DST_W / sw, DST_H / sh);
 
-// Helper to notify index.html that zoom changed (updates "Zoom (..%)")
-function emitZoomInput() {
-  zoomSlider.dispatchEvent(new Event("input")); // triggers zoomPct update in index.html
-}
-
 function roundedClipPath(ctx) {
   ctx.beginPath();
 
@@ -70,16 +65,32 @@ function draw() {
   ctx.restore();
 }
 
+// Keep the UI bits (percent label + filled track) in sync with the slider value
+function updateZoomUI() {
+  const pctEl = document.getElementById("zoomPct");
+  if (pctEl && minScale) {
+    // Percent relative to the cover scale (minScale): 100% at default
+    const pct = Math.round((scale / minScale) * 100);
+    pctEl.textContent = `${pct}%`;
+  }
+
+  // Filled track (based on slider position within its range)
+  const min = parseFloat(zoomSlider.min);
+  const max = parseFloat(zoomSlider.max);
+  const fill = ((scale - min) / (max - min)) * 100;
+  zoomSlider.style.setProperty("--fill", `${clamp(fill, 0, 100)}%`);
+}
+
 function resetView() {
   if (!img) return;
 
   // Cover scale to fill 470×200
   minScale = coverScale(img.naturalWidth, img.naturalHeight);
-  scale = minScale;
 
-  // Allow 50% .. 200% relative to the cover scale
-  zoomSlider.min = String(minScale * 0.5);
-  zoomSlider.max = String(minScale * 2.0);
+  // Range symmetric around 100% so the thumb sits in the middle at default
+  zoomSlider.min = String(minScale * 0.5);  // 50%
+  zoomSlider.max = String(minScale * 1.5);  // 150%
+  scale = minScale;                         // 100% (middle)
   zoomSlider.value = String(scale);
 
   tx = 0; ty = 0;
@@ -88,7 +99,7 @@ function resetView() {
   const hint = document.getElementById("emptyHint");
   if (hint) hint.style.display = "none";
 
-  emitZoomInput();
+  updateZoomUI();
   draw();
 }
 
@@ -97,12 +108,13 @@ fileInput.addEventListener("change", async (e) => {
   try {
     img = await loadImageFromFile(e.target.files?.[0]); // JPG/PNG/WebP support
     resetView();
+    downloadBtn.disabled = false;
   } catch (err) {
     error(err);
     alert(err.message || "Failed to load image.");
-    // If load failed, show the hint again
     const hint = document.getElementById("emptyHint");
     if (hint) hint.style.display = "";
+    downloadBtn.disabled = true;
   }
 });
 
@@ -121,8 +133,11 @@ canvas.addEventListener("pointercancel", () => { dragging = false; });
 
 canvas.addEventListener("wheel", (e) => {
   if (!img) return; e.preventDefault();
+  const min = parseFloat(zoomSlider.min);
+  const max = parseFloat(zoomSlider.max);
+
   const factor = Math.exp(-e.deltaY * 0.0015);
-  const newScale = clamp(scale * factor, parseFloat(zoomSlider.min), parseFloat(zoomSlider.max));
+  const newScale = clamp(scale * factor, min, max);
 
   // Zoom about the canvas center
   const cx = DST_W / 2, cy = DST_H / 2;
@@ -131,19 +146,23 @@ canvas.addEventListener("wheel", (e) => {
   scale = newScale;
 
   zoomSlider.value = String(scale);
-  emitZoomInput();  // keep Zoom (..%) in sync
+  updateZoomUI();
   draw();
 }, { passive:false });
 
 zoomSlider.addEventListener("input", () => {
   if (!img) return;
-  scale = clamp(parseFloat(zoomSlider.value) || minScale, parseFloat(zoomSlider.min), parseFloat(zoomSlider.max));
+  const min = parseFloat(zoomSlider.min);
+  const max = parseFloat(zoomSlider.max);
+  scale = clamp(parseFloat(zoomSlider.value) || minScale, min, max);
+  updateZoomUI();
   draw();
 });
 
 resetBtn.addEventListener("click", resetView);
 
 downloadBtn.addEventListener("click", () => {
+  if (!img) return;
   const url = canvas.toDataURL("image/png");
   const a = document.createElement("a");
   a.href = url;
@@ -153,5 +172,9 @@ downloadBtn.addEventListener("click", () => {
   a.remove();
 });
 
+// Disable download until an image is loaded
+downloadBtn.disabled = true;
+
 // initial paint (blank)
+updateZoomUI();
 draw();
