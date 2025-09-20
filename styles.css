@@ -184,6 +184,16 @@ input[type="range"]:active::-moz-range-thumb{ transform:scale(1.06); }
   border:2px solid var(--brand);
   box-shadow:0 1px 0 rgba(0,0,0,.02);
 }
+/* Make icons scale correctly */
+.btn img {
+  width:20px;
+  height:20px;
+}
+
+.empty-hint img {
+  width:42px;
+  height:42px;
+}
 .btn-outline:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.08); }
 .btn-outline:active{ transform:translateY(0); box-shadow:none; }
 .btn:focus-visible{ outline:3px solid var(--ring); outline-offset:3px; }
