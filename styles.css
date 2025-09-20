@@ -10,7 +10,7 @@
   --border:#E2E7EB;
 }
 
-/* ===== Euclid font ===== */
+/* ===== Euclid (local webfonts) ===== */
 @font-face{
   font-family:"Euclid";
   src:url("./fonts/euclidcirculara-regular-webfont.woff2") format("woff2");
@@ -29,18 +29,18 @@
 
 /* ===== Base ===== */
 html,body{height:100%}
+*, *::before, *::after { box-sizing: border-box; }
 body{
   margin:0;
   background:var(--bg);
   color:var(--ink);
   font:16px/1.6 "Euclid", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
-*, *::before, *::after { box-sizing: border-box; }
 
 /* ===== Layout ===== */
 .wrap{max-width:720px;margin:36px auto 80px;padding:0 20px}
 
-/* Unified content card */
+/* Unified content card shell */
 .card{
   width:470px;
   margin:0 auto;
@@ -51,90 +51,96 @@ body{
   display:block;
 }
 
-/* Card copy (top section) */
-.card-copy{
-  padding:24px;
-}
+/* Card copy (top) */
+.card-copy{ padding:24px; }
 .card-copy h1{
   margin:0;
-  font-size:38px;              /* slightly smaller */
+  font-size:38px;
   line-height:1.2;
-  font-weight:400;             /* Regular */
+  font-weight:400;
   color:var(--brand);
 }
 .card-copy p{
-  margin:10px 0 0;             /* little breather above */
+  margin:10px 0 0;
   color:#51616B;
   font-size:18px;
 }
 
-/* Preview (bottom section of the card) */
+/* Preview (bottom) */
 .preview{
   position:relative;
   width:470px; height:200px;
   margin:0;
-  background:var(--card);
   border-radius:0 0 18px 18px;
   overflow:hidden;
+
+  /* Checkerboard transparency background */
+  background:
+    linear-gradient(45deg,#0000000f 25%,transparent 25%) 0 0/24px 24px,
+    linear-gradient(45deg,transparent 75%,#0000000f 75%) 0 0/24px 24px,
+    linear-gradient(45deg,#0000000f 25%,transparent 25%) 12px 12px/24px 24px,
+    linear-gradient(45deg,transparent 75%,#0000000f 75%) 12px 12px/24px 24px,
+    var(--card);
 }
 canvas{
   display:block;
   width:100%; height:100%;
-  border-radius:0;
+  border-radius:0;            /* JS handles actual clipping */
   touch-action:none;
 }
 
-/* Upload overlay button */
+/* Upload overlay button (no CSS border; SVG draws the dashed outline) */
 .empty-hint{
   position:absolute; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:12px;
-  font:400 18px/1.6 "Euclid", system-ui, sans-serif; /* same as body copy */
+  font:400 18px/1.6 "Euclid", system-ui, sans-serif;
   color:var(--muted);
   background:rgba(255,255,255,.72);
-  border:2px dashed var(--border);
-  border-radius:0 40px 12px 12px;
+  border:none;
+  border-radius:0 40px 12px 12px; /* match hit area to export radii */
   cursor:pointer;
-  transition:background .2s, border-color .2s, box-shadow .2s;
+  transition:background .2s, box-shadow .2s, opacity .2s;
 }
-.empty-hint:hover{
-  background:rgba(255,255,255,.88);
-  border-color:var(--brand);
-  box-shadow:0 6px 16px rgba(0,0,0,.06) inset;
+.empty-hint:hover{ background:rgba(255,255,255,.88); }
+.empty-hint:focus-visible{ outline:3px solid var(--ring); outline-offset:3px; }
+
+.hint-border{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  pointer-events:none; /* clicks pass through */
 }
-.empty-hint:focus-visible{
-  outline:3px solid var(--ring);
-  outline-offset:3px;
+.hint-border path{
+  stroke:var(--brand);
+  stroke-width:2;
+  stroke-dasharray:6 6;
 }
-.empty-hint svg{
-  width:42px; height:42px; /* bigger arrow */
-}
+
+/* Icon sizing */
+.empty-hint img{ width:42px; height:42px; }
 
 /* ===== Controls ===== */
-.controls{margin-top:24px}
+.controls{ margin-top:24px }
 
-/* Default fill before any image is uploaded */
-#zoom {
-  --fill: 50%; /* start centered */
-}
-/* Slider card locked to card width */
+/* Slider card (align to 470px) */
 .slider-card{
   width:470px;
   margin:0 auto;
   background:var(--card);
   border:1px solid var(--border);
   border-radius:14px;
-  padding:14px 16px;
+  padding:14px 16px 18px;
   box-shadow:0 6px 16px rgba(0,0,0,.06);
 }
 .slider-title{
   float:right;
-  font:400 13px/1 "Euclid", system-ui, sans-serif;
+  font:400 13px/1 "Euclid", system-ui, sans-serif; /* regular weight */
   color:var(--muted);
   margin-bottom:10px;
 }
 
-/* Grey track + green fill */
+/* Range input: grey track + green fill (no outline) */
+#zoom { --fill: 50%; } /* centered before upload */
 input[type="range"]{
   -webkit-appearance:none; appearance:none;
   width:100%; height:20px; background:transparent; outline:none;
@@ -162,8 +168,7 @@ input[type="range"]::-webkit-slider-thumb{
   border-radius:50%;
   background:var(--brand);
   box-shadow:0 2px 6px var(--ring);
-  border:0;
-  transition:transform .1s ease;
+  border:0; transition:transform .1s ease;
 }
 input[type="range"]::-moz-range-thumb{
   width:28px; height:28px; border-radius:50%;
@@ -173,7 +178,7 @@ input[type="range"]::-moz-range-thumb{
 input[type="range"]:active::-webkit-slider-thumb{ transform:scale(1.06); }
 input[type="range"]:active::-moz-range-thumb{ transform:scale(1.06); }
 
-/* Buttons row */
+/* Buttons */
 .buttons{
   display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin-top:16px;
 }
@@ -188,23 +193,14 @@ input[type="range"]:active::-moz-range-thumb{ transform:scale(1.06); }
   border:2px solid var(--brand);
   box-shadow:0 1px 0 rgba(0,0,0,.02);
 }
-/* Make icons scale correctly */
-.btn img {
-  width:20px;
-  height:20px;
-}
-
-.empty-hint img {
-  width:42px;
-  height:42px;
-}
 .btn-outline:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.08); }
 .btn-outline:active{ transform:translateY(0); box-shadow:none; }
 .btn:focus-visible{ outline:3px solid var(--ring); outline-offset:3px; }
+.btn img{ width:20px; height:20px; }
 
 .icon{font-size:20px; line-height:1}
 
-/* ===== A11y helper ===== */
+/* ===== A11y ===== */
 .visually-hidden{
   position:absolute !important; left:-9999px !important; width:1px !important; height:1px !important; overflow:hidden !important;
 }
