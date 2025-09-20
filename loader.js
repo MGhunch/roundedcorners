@@ -2,37 +2,27 @@
 export const log = (...a) => console.log("[cropper]", ...a);
 export const error = (...a) => console.error("[cropper]", ...a);
 
-// Accept JPEG, PNG, GIF (added), WebP
-const SUPPORTED = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif"
-]);
-
-// File size thresholds
-const MIN_SIZE = 250 * 1024;       // 250 KB
-const MAX_SIZE = 4 * 1024 * 1024;  // 4 MB
+const SUPPORTED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const MIN_SIZE = 200 * 1024;  // 200 KB
+const MAX_SIZE = 4 * 1024 * 1024; // 4 MB
 
 export async function loadImageFromFile(file) {
   if (!file) throw new Error("No file selected.");
+  log("picked", file.name, file.type, Math.round(file.size/1024) + "KB");
 
-  log("picked", file.name, file.type, Math.round(file.size / 1024) + "KB");
+  // File type check
+  if (!SUPPORTED.has(file.type || "")) {
+    throw new Error("Can't read that image. Please upload a JPEG, PNG, or GIF.");
+  }
 
   // File size checks
   if (file.size < MIN_SIZE) {
-    throw new Error("That image is quite small. Please choose one that's over 250 KB.");
+    throw new Error("That image is quite small. Please choose one that's over 200 KB.");
   }
   if (file.size > MAX_SIZE) {
     throw new Error("That image is quite big. Please choose one that's under 4 MB.");
   }
 
-  // File type check
-  if (!SUPPORTED.has(file.type || "")) {
-    throw new Error("Can't read that image. Please upload a JPEG, PNG, GIF or WebP.");
-  }
-
-  // Try ImageBitmap first (fast path)
   if ("createImageBitmap" in window) {
     try {
       const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
@@ -49,7 +39,6 @@ export async function loadImageFromFile(file) {
     }
   }
 
-  // Fallback: createObjectURL
   const url = URL.createObjectURL(file);
   try {
     const img = await loadImageFromURL(url);
