@@ -15,37 +15,30 @@ const ctx = canvas.getContext("2d");
 canvas.width = DST_W; canvas.height = DST_H;
 
 let img = null, tx = 0, ty = 0, scale = 1, minScale = 1, dragging = false, lastX = 0, lastY = 0;
-
-// Keep a safe base name from the uploaded file for export
 let originalNameBase = "image";
 
-// --- helpers ---
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const coverScale = (sw, sh) => Math.max(DST_W / sw, DST_H / sh);
 
-// base name (no extension) + sanitize to something filesystem-safe
 function makeSafeBase(filename = "") {
-  const base = String(filename).replace(/\.[^.]+$/,""); // drop extension
-  // normalize accents, keep letters/numbers/dash/underscore, collapse spaces
-  let safe = base.normalize?.("NFKD").replace(/[\u0300-\u036f]/g,"") || base;
+  const base = String(filename).replace(/\.[^.]+$/, "");
+  let safe = base.normalize?.("NFKD").replace(/[\u0300-\u036f]/g, "") || base;
   safe = safe.replace(/[^a-z0-9_-]+/gi, "-").replace(/^-+|-+$/g, "");
   if (!safe) safe = "image";
-  // avoid mega-long names
   if (safe.length > 60) safe = safe.slice(0,60).replace(/-+$/,"");
   return safe;
 }
 
-function roundedClipPath(ctx) {
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(DST_W - R_TR, 0);
-  if (R_TR) ctx.quadraticCurveTo(DST_W, 0, DST_W, R_TR); else ctx.lineTo(DST_W, 0);
-  ctx.lineTo(DST_W, DST_H - R_BR);
-  if (R_BR) ctx.quadraticCurveTo(DST_W, DST_H, DST_W - R_BR, DST_H); else ctx.lineTo(DST_W, DST_H);
-  ctx.lineTo(R_BL, DST_H);
-  if (R_BL) ctx.quadraticCurveTo(0, DST_H, 0, DST_H - R_BL); else ctx.lineTo(0, DST_H);
-  ctx.lineTo(0, 0);
-  ctx.closePath();
+function roundedClipPath(g) {
+  g.beginPath();
+  g.moveTo(0, 0);
+  g.lineTo(DST_W - R_TR, 0);
+  if (R_TR) g.arcTo(DST_W,0,DST_W,R_TR,R_TR); else g.lineTo(DST_W,0);
+  g.lineTo(DST_W, DST_H - R_BR);
+  if (R_BR) g.arcTo(DST_W,DST_H,DST_W-R_BR,DST_H,R_BR); else g.lineTo(DST_W,DST_H);
+  g.lineTo(R_BL, DST_H);
+  if (R_BL) g.arcTo(0,DST_H,0,DST_H-R_BL,R_BL); else g.lineTo(0,DST_H);
+  g.closePath();
 }
 
 function draw() {
@@ -68,13 +61,13 @@ function draw() {
   ctx.restore();
 }
 
-// Keep the UI bits (percent label + filled track) in sync with the slider value
 function updateZoomUI() {
   const pctEl = document.getElementById("zoomPct");
   if (pctEl && minScale) {
-    const pct = Math.round((scale / minScale) * 100);   // 100% at cover
+    const pct = Math.round((scale / minScale) * 100);
     pctEl.textContent = `${pct}%`;
   }
+
   const min = parseFloat(zoomSlider.min);
   const max = parseFloat(zoomSlider.max);
   const fill = ((scale - min) / (max - min)) * 100;
@@ -84,18 +77,16 @@ function updateZoomUI() {
 function resetView() {
   if (!img) return;
 
-  // Cover scale to fill 470×200
   minScale = coverScale(img.naturalWidth, img.naturalHeight);
 
-  // Range 50% … 150%, start at 100% (middle)
+  // Expanded range: 50% .. 200% of cover-scale
   zoomSlider.min = String(minScale * 0.5);
-  zoomSlider.max = String(minScale * 1.5);
-  scale = minScale;                    // 100%
+  zoomSlider.max = String(minScale * 2.0);
+  scale = minScale;            // 100%
   zoomSlider.value = String(scale);
 
   tx = 0; ty = 0;
 
-  // Hide the “Upload your image” hint now that we have an image
   const hint = document.getElementById("emptyHint");
   if (hint) hint.style.display = "none";
 
@@ -108,7 +99,7 @@ fileInput.addEventListener("change", async (e) => {
   const file = e.target.files?.[0];
   try {
     if (file) originalNameBase = makeSafeBase(file.name);
-    img = await loadImageFromFile(file); // JPG/PNG/WebP support
+    img = await loadImageFromFile(file);
     resetView();
     downloadBtn.disabled = false;
   } catch (err) {
@@ -137,10 +128,10 @@ canvas.addEventListener("wheel", (e) => {
   if (!img) return; e.preventDefault();
   const min = parseFloat(zoomSlider.min);
   const max = parseFloat(zoomSlider.max);
+
   const factor = Math.exp(-e.deltaY * 0.0015);
   const newScale = clamp(scale * factor, min, max);
 
-  // Zoom about the canvas center
   const cx = DST_W / 2, cy = DST_H / 2;
   tx = cx + (tx - cx) * (newScale / scale);
   ty = cy + (ty - cy) * (newScale / scale);
@@ -167,16 +158,13 @@ downloadBtn.addEventListener("click", () => {
   const url = canvas.toDataURL("image/png");
   const a = document.createElement("a");
   a.href = url;
-  // Use the uploaded file's base name + "rounded.png" (per your spec, no hyphen)
-  a.download = `${originalNameBase}_rounded.png`;
+  a.download = `${originalNameBase}rounded.png`;
   document.body.appendChild(a);
   a.click();
   a.remove();
 });
 
-// Disable download until an image is loaded
 downloadBtn.disabled = true;
 
-// initial paint (blank)
 updateZoomUI();
 draw();
