@@ -1,35 +1,33 @@
 /* ===== Brand ===== */
-:root {
+:root{
   --brand:#38A45F;
   --bg:#F2F4F6;
   --ink:#1F2A2E;
   --muted:#6B7A85;
   --card:#FFFFFF;
   --ring: rgba(56,164,95,.35);
-  /* stronger, layered shadows */
-  --shadow: 0 6px 12px rgba(0,0,0,0.12),
-            0 12px 24px rgba(0,0,0,0.10);
+  --shadow: 0 12px 30px rgba(0,0,0,.12);
 }
 
 /* ===== Euclid font (webfonts in /fonts) ===== */
-@font-face {
+@font-face{
   font-family:"Euclid";
   src: url("./fonts/euclidcirculara-regular-webfont.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap;
 }
-@font-face {
+@font-face{
   font-family:"Euclid";
   src: url("./fonts/euclidcirculara-semibold-webfont.woff2") format("woff2");
   font-weight:600; font-style:normal; font-display:swap;
 }
-@font-face {
+@font-face{
   font-family:"Euclid";
   src: url("./fonts/euclidcirculara-light-webfont.woff2") format("woff2");
   font-weight:300; font-style:normal; font-display:swap;
 }
 
-html,body { height:100% }
-body {
+html,body{height:100%}
+body{
   margin:0;
   background:var(--bg);
   color:var(--ink);
@@ -37,152 +35,156 @@ body {
 }
 
 /* ===== Layout ===== */
-.wrap { max-width:880px; margin:48px auto 80px; padding:0 24px }
+.wrap{max-width:880px;margin:48px auto 80px;padding:0 24px}
 
-.card {
+.card{
   background:var(--card);
   border-radius:18px;
   box-shadow: var(--shadow);
   padding:28px 28px 20px;
 }
 
-.card-copy h1 {
-  margin:0 0 10px;
+.card-copy h1{
+  margin:0 0 6px;
   font-size:34px; line-height:1.2; font-weight:400; /* regular */
   color:var(--brand);
 }
-.card-copy p {
-  margin:0 0 18px;
-  color:#51616B;
+.card-copy p{
+  margin:0 0 18px; color:#51616B;
   font-size:18px;
   padding-top:6px; /* little breather */
 }
 
 /* ===== Preview ===== */
-.preview {
-  display:flex; align-items:center; justify-content:center;
-  border-radius:18px;
+.preview{
+  position:relative;
+  width:470px; height:200px;
+  margin:0;
+  border-radius:0 40px 12px 12px;
   overflow:hidden;
   background:
-    linear-gradient(45deg,#00000012 25%,transparent 25%) 0 0/24px 24px,
-    linear-gradient(45deg,transparent 75%,#00000012 75%) 0 0/24px 24px,
-    linear-gradient(45deg,#00000012 25%,transparent 25%) 12px 12px/24px 24px,
-    linear-gradient(45deg,transparent 75%,#00000012 75%) 12px 12px/24px 24px;
-  border:1px solid transparent;
+    linear-gradient(45deg,#00000022 25%,transparent 25%) 0 0/24px 24px,
+    linear-gradient(45deg,transparent 75%,#00000022 75%) 0 0/24px 24px,
+    linear-gradient(45deg,#00000022 25%,transparent 25%) 12px 12px/24px 24px,
+    linear-gradient(45deg,transparent 75%,#00000022 75%) 12px 12px/24px 24px,
+    var(--card);
 }
-canvas {
+canvas{
   max-width:100%; height:auto; display:block;
-  border-radius:18px;
+  border-radius:0; /* JS handles clipping */
   touch-action:none;
 }
 
-/* ===== Upload Hint ===== */
-.empty-hint {
-  position:absolute;
-  inset:0;
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
+/* ===== Upload hint ===== */
+.empty-hint{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px;
+  font:400 18px/1.6 "Euclid", system-ui, sans-serif;
   color:var(--muted);
-  background:transparent;
+  background:rgba(255,255,255,.72);
   border:none;
+  border-radius:0 40px 12px 12px;
   cursor:pointer;
+  transition:background .2s, box-shadow .2s, opacity .2s;
 }
-.empty-hint img {
-  width:36px; height:36px; margin-bottom:8px;
-}
-.empty-hint span {
-  font-size:16px;
-  font-weight:400;
-}
-.hint-border {
+.empty-hint:hover{ background:rgba(255,255,255,.88); }
+.empty-hint:focus-visible{ outline:3px solid var(--ring); outline-offset:3px; }
+.empty-hint img{ width:42px; height:42px; }
+
+/* Dashed outline */
+.hint-border{
   position:absolute; inset:0;
   width:100%; height:100%;
+  pointer-events:none;
+}
+.hint-border path{
   stroke:var(--brand);
   stroke-width:2;
   stroke-dasharray:6 6;
-  pointer-events:none;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  shape-rendering:geometricPrecision;
 }
 
 /* ===== Controls ===== */
-.controls { margin-top:28px }
+.controls{margin-top:28px}
 
-.slider-card {
+.slider-card{
+  width:470px;
+  margin:0 auto;
   background:var(--card);
-  border-radius:12px;
-  box-shadow: var(--shadow);
-  padding:16px 20px;
-  margin-top:24px;
+  border:1px solid #E2E7EB;
+  border-radius:14px;
+  padding:14px 16px 18px;
+  box-shadow:var(--shadow);
 }
-.slider-title {
-  font-size:14px;
-  font-weight:400; /* regular not semibold */
+.slider-title{
+  float:right;
+  font:400 13px/1 "Euclid", system-ui, sans-serif;
   color:var(--muted);
-  text-align:right;
-  margin-bottom:8px;
+  margin-bottom:10px;
 }
 
-input[type="range"] {
+#zoom { --fill: 50%; }
+input[type="range"]{
   -webkit-appearance:none; appearance:none;
   width:100%; height:20px; background:transparent; outline:none;
 }
-input[type="range"]::-webkit-slider-runnable-track {
-  height:6px; border-radius:999px;
-  background:linear-gradient(to right, var(--brand) var(--fill, 50%), #D0D5DA var(--fill, 50%));
+input[type="range"]::-webkit-slider-runnable-track{
+  height:8px; border-radius:999px;
+  background:
+    linear-gradient(var(--brand), var(--brand)) 0/ var(--fill, 0%) 100% no-repeat,
+    #DADFE3;
+  border:none;
 }
-input[type="range"]::-webkit-slider-thumb {
+input[type="range"]::-moz-range-track{
+  height:8px; border-radius:999px;
+  background:#DADFE3;
+  border:none;
+}
+input[type="range"]::-moz-range-progress{
+  height:8px; border-radius:999px;
+  background:var(--brand);
+}
+input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance:none; appearance:none;
-  width:28px; height:28px; margin-top:-12px;
+  width:28px; height:28px; margin-top:-13px;
   border-radius:50%;
   background:var(--brand);
   box-shadow:0 2px 6px var(--ring);
-  border:0;
-  cursor:pointer;
+  border:0; transition:transform .1s ease;
 }
-input[type="range"]::-moz-range-track {
-  height:6px; border-radius:999px;
-  background:linear-gradient(to right, var(--brand) var(--fill, 50%), #D0D5DA var(--fill, 50%));
-}
-input[type="range"]::-moz-range-thumb {
+input[type="range"]::-moz-range-thumb{
   width:28px; height:28px; border-radius:50%;
   background:var(--brand); border:0; box-shadow:0 2px 6px var(--ring);
-  cursor:pointer;
+  transition:transform .1s ease;
 }
+input[type="range"]:active::-webkit-slider-thumb{ transform:scale(1.06); }
+input[type="range"]:active::-moz-range-thumb{ transform:scale(1.06); }
 
-/* ===== Buttons ===== */
-.buttons {
-  display:flex; gap:18px; flex-wrap:wrap;
-  justify-content:center; margin-top:24px;
+.buttons{
+  display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin-top:16px;
 }
-.btn {
+.btn{
   font:500 18px/1 "Euclid", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  padding:18px 22px;
-  border-radius:999px;
-  cursor:pointer; user-select:none;
+  padding:18px 22px; border-radius:999px; cursor:pointer; user-select:none;
   display:inline-flex; align-items:center; gap:10px;
   transition: transform .06s ease, box-shadow .2s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
 }
-.btn-outline {
-  background:#fff;
-  color:var(--brand);
+.btn-outline{
+  background:#fff; color:var(--brand);
   border:2px solid var(--brand);
-  box-shadow: var(--shadow); /* stronger shadow */
+  box-shadow:var(--shadow);
 }
-.btn-outline:hover {
-  transform:translateY(-1px);
-  box-shadow:0 8px 18px rgba(0,0,0,0.16), 0 14px 28px rgba(0,0,0,0.14);
-}
-.btn-outline:active {
-  transform:translateY(0);
-  box-shadow:0 4px 8px rgba(0,0,0,0.12);
-}
-.btn:focus-visible {
-  outline:3px solid var(--ring);
-  outline-offset:3px;
-}
+.btn-outline:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.08); }
+.btn-outline:active{ transform:translateY(0); box-shadow:none; }
+.btn:focus-visible{ outline:3px solid var(--ring); outline-offset:3px; }
 
-.icon { font-size:20px; line-height:1 }
+.icon{font-size:20px; line-height:1}
 
 /* ===== A11y helpers ===== */
-.visually-hidden {
+.visually-hidden{
   position:absolute !important; left:-9999px !important; width:1px !important; height:1px !important; overflow:hidden !important;
 }
