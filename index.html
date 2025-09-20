@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Content Card Image Maker</title>
-  <link rel="stylesheet" href="./styles.css?v=8" />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div class="wrap">
@@ -21,9 +21,10 @@
       <div class="preview">
         <canvas id="out" width="470" height="200" aria-label="preview"></canvas>
 
-        <!-- Upload hint with dashed outline -->
+        <!-- Upload hint button with precise dashed outline using SVG arcs -->
         <button id="emptyHint" type="button" class="empty-hint" aria-label="Upload an image">
           <svg class="hint-border" viewBox="0 0 470 200" aria-hidden="true" focusable="false">
+            <!-- Rounded rectangle inset by 1px: TL 0, TR 39, BR 11, BL 11 -->
             <path d="
               M 1,1
               H 429
@@ -36,6 +37,7 @@
               Z
             " fill="none"/>
           </svg>
+
           <img src="./images/upload.png" alt="" />
           <span>Upload your image</span>
         </button>
@@ -46,7 +48,12 @@
     <div class="controls">
       <div class="slider-card">
         <div class="slider-title">Zoom (<span id="zoomPct">100%</span>)</div>
-        <input id="zoom" type="range" min="0.5" max="2.0" step="0.01" value="1" />
+        <!-- Slider with inline --fill to stop flash -->
+        <input id="zoom"
+               type="range"
+               min="0.5" max="2.0" step="0.01"
+               value="1"
+               style="--fill:50%;" />
       </div>
 
       <div class="buttons">
@@ -63,6 +70,7 @@
 
   <script type="module" src="./app.js"></script>
 
+  <!-- Slider sync: keeps green fill aligned with thumb -->
   <script>
     (function () {
       const fileInput = document.getElementById('file');
@@ -83,7 +91,7 @@
         if (pct) pct.textContent = Math.round((val / mid) * 100) + '%';
       }
 
-      // Center slider before any image is loaded
+      // Center slider visually before any image is loaded
       const mid = (parseFloat(z.min) + parseFloat(z.max)) / 2;
       z.value = String(mid);
       sync();
