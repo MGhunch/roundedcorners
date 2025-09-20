@@ -45,7 +45,7 @@ body{
 .wrap{max-width:880px;margin:48px auto 80px;padding:0 24px}
 
 .card{
-  max-width: 470px;
+  max-width: 440px;
   margin: 0 auto;
   background:var(--card);
   border-radius:18px;
