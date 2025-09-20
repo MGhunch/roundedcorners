@@ -131,7 +131,7 @@ canvas{
 .controls{margin-top:28px}
 
 .slider-card{
-  max-width:470px;
+  max-width:440px;
   margin:0 auto;
   background:var(--card);
   border:1px solid #E2E7EB;
