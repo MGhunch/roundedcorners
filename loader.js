@@ -2,26 +2,36 @@
 export const log = (...a) => console.log("[cropper]", ...a);
 export const error = (...a) => console.error("[cropper]", ...a);
 
+// Tweak here if you ever change limits
+const MIN_KB = 250;     // 250 KB minimum
+const MAX_MB = 4;       // 4 MB maximum
+
 // Supported image formats
 const SUPPORTED = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export async function loadImageFromFile(file) {
   if (!file) throw new Error("No file selected.");
 
-  const sizeMB = (file.size || 0) / (1024 * 1024);
-  if (sizeMB > 4) {
-    throw new Error("That image is quite big. Please choose one that's under 4 MB.");
+  const sizeBytes = file.size || 0;
+  const sizeKB = sizeBytes / 1024;
+  const sizeMB = sizeBytes / (1024 * 1024);
+
+  // Size guards
+  if (sizeMB > MAX_MB) {
+    throw new Error(`That image is quite big. Please choose one that's under ${MAX_MB} MB.`);
   }
-  if (sizeMB < 1) {
-    throw new Error("That image is quite small. Please choose one that's over 1 MB.");
+  if (sizeKB < MIN_KB) {
+    throw new Error(`That image is quite small. Please choose one that's over ${MIN_KB} KB.`);
   }
 
-  log("picked", file.name, file.type, Math.round(file.size / 1024) + "KB");
+  log("picked", file.name, file.type || "unknown", Math.round(sizeKB) + "KB");
 
+  // Type guard
   if (!SUPPORTED.has(file.type || "")) {
     throw new Error("Can't read that image. Please upload a JPEG, PNG or WebP file.");
   }
 
+  // Use ImageBitmap when available (honors EXIF orientation)
   if ("createImageBitmap" in window) {
     try {
       const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
@@ -37,6 +47,7 @@ export async function loadImageFromFile(file) {
     }
   }
 
+  // Fallback: object URL → Image
   const url = URL.createObjectURL(file);
   try {
     const img = await loadImageFromURL(url);
