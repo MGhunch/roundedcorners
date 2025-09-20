@@ -2,41 +2,43 @@
 export const log = (...a) => console.log("[cropper]", ...a);
 export const error = (...a) => console.error("[cropper]", ...a);
 
-// Tweak here if you ever change limits
-const MIN_KB = 250;     // 250 KB minimum
-const MAX_MB = 4;       // 4 MB maximum
+// Accept JPEG, PNG, GIF (added), WebP
+const SUPPORTED = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif"
+]);
 
-// Supported image formats
-const SUPPORTED = new Set(["image/jpeg", "image/png", "image/webp"]);
+// File size thresholds
+const MIN_SIZE = 250 * 1024;       // 250 KB
+const MAX_SIZE = 4 * 1024 * 1024;  // 4 MB
 
 export async function loadImageFromFile(file) {
   if (!file) throw new Error("No file selected.");
 
-  const sizeBytes = file.size || 0;
-  const sizeKB = sizeBytes / 1024;
-  const sizeMB = sizeBytes / (1024 * 1024);
+  log("picked", file.name, file.type, Math.round(file.size / 1024) + "KB");
 
-  // Size guards
-  if (sizeMB > MAX_MB) {
-    throw new Error(`That image is quite big. Please choose one that's under ${MAX_MB} MB.`);
+  // File size checks
+  if (file.size < MIN_SIZE) {
+    throw new Error("That image is quite small. Please choose one that's over 250 KB.");
   }
-  if (sizeKB < MIN_KB) {
-    throw new Error(`That image is quite small. Please choose one that's over ${MIN_KB} KB.`);
+  if (file.size > MAX_SIZE) {
+    throw new Error("That image is quite big. Please choose one that's under 4 MB.");
   }
 
-  log("picked", file.name, file.type || "unknown", Math.round(sizeKB) + "KB");
-
-  // Type guard
+  // File type check
   if (!SUPPORTED.has(file.type || "")) {
-    throw new Error("Can't read that image. Please upload a JPEG, PNG or WebP file.");
+    throw new Error("Can't read that image. Please upload a JPEG, PNG, GIF or WebP.");
   }
 
-  // Use ImageBitmap when available (honors EXIF orientation)
+  // Try ImageBitmap first (fast path)
   if ("createImageBitmap" in window) {
     try {
       const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
       const off = document.createElement("canvas");
-      off.width = bmp.width; off.height = bmp.height;
+      off.width = bmp.width;
+      off.height = bmp.height;
       off.getContext("2d").drawImage(bmp, 0, 0);
       const dataUrl = off.toDataURL("image/png");
       const img = await loadImageFromDataURL(dataUrl);
@@ -47,7 +49,7 @@ export async function loadImageFromFile(file) {
     }
   }
 
-  // Fallback: object URL → Image
+  // Fallback: createObjectURL
   const url = URL.createObjectURL(file);
   try {
     const img = await loadImageFromURL(url);
