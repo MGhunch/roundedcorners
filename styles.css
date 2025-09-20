@@ -10,7 +10,7 @@
   --shadow: 0 10px 24px rgba(0,0,0,.14);
   --shadow-soft: 0 2px 8px rgba(0,0,0,.08);
 
-  /* checkerboard (a little darker so it reads) */
+  /* checkerboard */
   --checker-a:#f1f1f1;
   --checker-b:#e7e7e7;
 }
@@ -45,31 +45,36 @@ body{
 .wrap{max-width:880px;margin:48px auto 80px;padding:0 24px}
 
 .card{
-  max-width: 470px;   /* limit the card itself */
-  margin: 0 auto;     /* center it */
+  max-width: 470px;
+  margin: 0 auto;
   background:var(--card);
   border-radius:18px;
-  padding:28px 0px 22px;
+  padding-top:28px;   /* only top padding */
   box-shadow: var(--shadow), var(--shadow-soft);
+}
+
+.card-copy{
+  padding: 0 28px;    /* side padding for text */
+  margin-bottom: 18px;
 }
 
 .card-copy h1{
   margin:0 0 8px;
-  font-size:34px; line-height:1.2; font-weight:400; /* regular */
+  font-size:34px; line-height:1.2; font-weight:400;
   color:var(--brand);
 }
 .card-copy p{
-  margin:0 0 18px;
+  margin:0;
   color:#51616B;
   font-size:18px;
-  padding-top:6px; /* small breather */
+  padding-top:6px;
 }
 
 /* ========= Preview (470×200 | TL 0, TR 40, BR 12, BL 12) ========= */
 .preview{
   position:relative;
   width:470px; height:200px;
-  margin:0 auto;                   /* center the preview */
+  margin:0;   /* flush inside card */
   border-radius:0 40px 12px 12px;
   overflow:hidden;
   background:
@@ -84,11 +89,11 @@ canvas{
   display:block;
   max-width:100%;
   height:auto;
-  border-radius:0;   /* clipping is done in JS */
+  border-radius:0;
   touch-action:none;
 }
 
-/* ========= Upload hint over preview ========= */
+/* ========= Upload hint ========= */
 .empty-hint{
   position:absolute; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -103,11 +108,9 @@ canvas{
 }
 .empty-hint:hover{ background:rgba(255,255,255,.88); }
 .empty-hint:focus-visible{ outline:3px solid rgba(56,164,95,.35); outline-offset:3px; }
-
-/* Keep the upload icon a sensible size */
 .empty-hint img{ width:42px; height:42px; }
 
-/* SVG dashed outline — sits on top, matches rounded corners */
+/* dashed outline */
 .hint-border{
   position:absolute; inset:0;
   width:100%; height:100%;
@@ -143,7 +146,7 @@ canvas{
   margin-bottom:10px;
 }
 
-/* filled track (WebKit) */
+/* slider track */
 #zoom { --fill: 50%; }
 input[type="range"]{
   -webkit-appearance:none; appearance:none;
@@ -199,10 +202,10 @@ input[type="range"]:active::-moz-range-thumb{ transform:scale(1.06); }
 .btn-outline:active{ transform:translateY(0); box-shadow:none; }
 .btn:focus-visible{ outline:3px solid rgba(56,164,95,.35); outline-offset:3px; }
 
-/* Keep button icons tidy */
+/* button icons */
 .btn img{ width:22px; height:22px; }
 
-/* ========= A11y helper ========= */
+/* ========= A11y ========= */
 .visually-hidden{
   position:absolute !important;
   left:-9999px !important;
