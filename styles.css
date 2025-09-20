@@ -40,7 +40,6 @@ body{
 /* ===== Layout ===== */
 .wrap{max-width:720px;margin:36px auto 80px;padding:0 20px}
 
-/* Unified content card shell */
 .card{
   width:470px;
   margin:0 auto;
@@ -57,40 +56,39 @@ body{
   margin:0;
   font-size:38px;
   line-height:1.2;
-  font-weight:400;           /* regular per request */
+  font-weight:400;           /* regular */
   color:var(--brand);
 }
 .card-copy p{
-  margin:10px 0 0;           /* small breather above body copy */
+  margin:10px 0 0;
   color:#51616B;
   font-size:18px;
 }
 
-/* ===== Preview (bottom) ===== */
+/* ===== Preview ===== */
 .preview{
   position:relative;
   width:470px; height:200px;
   margin:0;
-  /* IMPORTANT: match export corners (TL 0, TR 40, BR 12, BL 12) */
-  border-radius:0 40px 12px 12px;
+  border-radius:0 40px 12px 12px;   /* match export */
   overflow:hidden;
 
-  /* Checkerboard transparency background */
+  /* Darker checkerboard transparency background */
   background:
-    linear-gradient(45deg,#0000000f 25%,transparent 25%) 0 0/24px 24px,
-    linear-gradient(45deg,transparent 75%,#0000000f 75%) 0 0/24px 24px,
-    linear-gradient(45deg,#0000000f 25%,transparent 25%) 12px 12px/24px 24px,
-    linear-gradient(45deg,transparent 75%,#0000000f 75%) 12px 12px/24px 24px,
+    linear-gradient(45deg,#00000033 25%,transparent 25%) 0 0/24px 24px,
+    linear-gradient(45deg,transparent 75%,#00000033 75%) 0 0/24px 24px,
+    linear-gradient(45deg,#00000033 25%,transparent 25%) 12px 12px/24px 24px,
+    linear-gradient(45deg,transparent 75%,#00000033 75%) 12px 12px/24px 24px,
     var(--card);
 }
 canvas{
   display:block;
   width:100%; height:100%;
-  border-radius:0;            /* JS handles actual clipping */
+  border-radius:0;            /* JS handles clipping */
   touch-action:none;
 }
 
-/* Upload overlay button (SVG draws the dashed outline) */
+/* Upload overlay button */
 .empty-hint{
   position:absolute; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -99,18 +97,19 @@ canvas{
   color:var(--muted);
   background:rgba(255,255,255,.72);
   border:none;
-  border-radius:0 40px 12px 12px;   /* match export radii */
+  border-radius:0 40px 12px 12px;
   cursor:pointer;
   transition:background .2s, box-shadow .2s, opacity .2s;
 }
 .empty-hint:hover{ background:rgba(255,255,255,.88); }
 .empty-hint:focus-visible{ outline:3px solid var(--ring); outline-offset:3px; }
+.empty-hint img{ width:42px; height:42px; }
 
-/* Dotted outline that hugs the corners exactly */
+/* Dashed outline */
 .hint-border{
   position:absolute; inset:0;
   width:100%; height:100%;
-  pointer-events:none;              /* clicks pass through */
+  pointer-events:none;
 }
 .hint-border path{
   stroke:var(--brand);
@@ -122,13 +121,9 @@ canvas{
   shape-rendering:geometricPrecision;
 }
 
-/* Icon sizing */
-.empty-hint img{ width:42px; height:42px; }
-
 /* ===== Controls ===== */
 .controls{ margin-top:24px }
 
-/* Slider card (aligned to 470px) */
 .slider-card{
   width:470px;
   margin:0 auto;
@@ -140,13 +135,12 @@ canvas{
 }
 .slider-title{
   float:right;
-  font:400 13px/1 "Euclid", system-ui, sans-serif; /* regular weight */
+  font:400 13px/1 "Euclid", system-ui, sans-serif; /* regular */
   color:var(--muted);
   margin-bottom:10px;
 }
 
-/* Range input: grey track + green fill (no outline) */
-#zoom { --fill: 50%; } /* start centered before upload */
+#zoom { --fill: 50%; }
 input[type="range"]{
   -webkit-appearance:none; appearance:none;
   width:100%; height:20px; background:transparent; outline:none;
@@ -167,7 +161,6 @@ input[type="range"]::-moz-range-progress{
   height:8px; border-radius:999px;
   background:var(--brand);
 }
-/* Thumb */
 input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance:none; appearance:none;
   width:28px; height:28px; margin-top:-13px;
@@ -184,7 +177,6 @@ input[type="range"]::-moz-range-thumb{
 input[type="range"]:active::-webkit-slider-thumb{ transform:scale(1.06); }
 input[type="range"]:active::-moz-range-thumb{ transform:scale(1.06); }
 
-/* Buttons */
 .buttons{
   display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin-top:16px;
 }
