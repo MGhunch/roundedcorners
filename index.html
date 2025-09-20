@@ -4,16 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Content Card Image Maker</title>
-
-  <!-- Loads your Euclid + UI styles -->
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <div class="card-copy">
-        <h1>Need an image for <br>your content card?</h1>
-        <p>Upload your image, move it around and zoom to find the perfect crop. Then hit download, easy.</p>
+        <h1>Need an image for your content card?</h1>
+        <p>Upload your image, move it around and zoom to find the perfect crop. Then hit download, easy..</p>
       </div>
 
       <!-- Hidden file input (used by app.js) -->
@@ -23,8 +21,23 @@
       <div class="preview">
         <canvas id="out" width="470" height="200" aria-label="preview"></canvas>
 
-        <!-- Overlay upload hint button -->
+        <!-- Overlay upload hint button with SVG dashed outline -->
         <button id="emptyHint" type="button" class="empty-hint" aria-label="Upload an image">
+          <!-- precise dashed outline for 0 / 40 / 12 / 12 -->
+          <svg class="hint-border" viewBox="0 0 470 200" aria-hidden="true" focusable="false">
+            <path d="
+              M 0,0
+              H 430
+              Q 470,0 470,40
+              V 188
+              Q 470,200 458,200
+              H 12
+              Q 0,200 0,188
+              V 0
+              Z
+            " fill="none"/>
+          </svg>
+
           <img src="./images/upload.png" alt="" />
           <span>Upload your image</span>
         </button>
@@ -35,7 +48,7 @@
     <div class="controls">
       <div class="slider-card">
         <div class="slider-title">Zoom (<span id="zoomPct">100%</span>)</div>
-        <!-- Default range symmetric (0.5–1.5) so thumb starts in middle -->
+        <!-- Symmetric default so thumb is centered pre-upload -->
         <input id="zoom" type="range" min="0.5" max="1.5" step="0.01" value="1" />
       </div>
 
@@ -52,27 +65,39 @@
   </div>
 
   <script type="module" src="./app.js"></script>
-  <script>
-    // Bridge overlay button → hidden file input
-    const fileInput = document.getElementById('file');
-    const emptyHint = document.getElementById('emptyHint');
-    if (emptyHint) {
-      emptyHint.addEventListener('click', () => fileInput.click());
-    }
 
-    // Keep zoom % label in sync with slider value
-    const zoomSlider = document.getElementById('zoom');
-    const zoomPct = document.getElementById('zoomPct');
-    function updateInitialZoom() {
-      const min = parseFloat(zoomSlider.min);
-      const max = parseFloat(zoomSlider.max);
-      const mid = (min + max) / 2;
-      zoomSlider.value = String(mid);
-      zoomPct.textContent = '100%';
-      zoomSlider.style.setProperty('--fill', '50%');
-    }
-    updateInitialZoom();
+  <!-- Pre-upload UI sync: center thumb, update fill + label immediately -->
+  <script>
+    (function () {
+      const fileInput = document.getElementById('file');
+      const emptyHint = document.getElementById('emptyHint');
+      if (emptyHint) emptyHint.addEventListener('click', () => fileInput.click());
+
+      const z = document.getElementById('zoom');
+      const pct = document.getElementById('zoomPct');
+      if (!z) return;
+
+      function sync() {
+        const min = parseFloat(z.min), max = parseFloat(z.max);
+        const val = parseFloat(z.value);
+        const fill = ((val - min) / (max - min)) * 100;
+        z.style.setProperty('--fill', Math.max(0, Math.min(100, fill)) + '%');
+
+        // Percent reads 100% at the middle (cover scale once an image loads)
+        const mid = (min + max) / 2;
+        if (pct) pct.textContent = Math.round((val / mid) * 100) + '%';
+      }
+
+      // Center at load and draw initial fill
+      const mid = (parseFloat(z.min) + parseFloat(z.max)) / 2;
+      z.value = String(mid);
+      sync();
+
+      z.addEventListener('input', sync);
+      z.addEventListener('change', sync);
+    })();
   </script>
+
   <noscript>Please enable JavaScript to use the image maker.</noscript>
 </body>
 </html>
