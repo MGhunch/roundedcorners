@@ -3,7 +3,7 @@ import { loadImageFromFile, log, error } from "./loader.js";
 
 // --- export size & corner radii ---
 const DST_W = 470, DST_H = 200;
-const R_TL = 0, R_TR = 40, R_BR = 12, R_BL = 12;
+const R_TL = 0, R_TR = 40, R_BR = 0, R_BL = 0;
 
 const $ = id => document.getElementById(id);
 const fileInput   = $("file");
